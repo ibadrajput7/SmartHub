@@ -3,14 +3,15 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, Base, engine
 from app.models import User, Note, Quiz
 from app.auth import hash_password, verify_password
-from app.routers import router as note_router
+# from app.routers import router as note_router
+from app.notes import router as note_router
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 # Define a Pydantic model for the input
 
 class SignupRequest(BaseModel):
     username: str
-    email: EmailStr
+    email: str
     password: str
 
 app = FastAPI()

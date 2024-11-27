@@ -1,179 +1,193 @@
-from pydantic import BaseModel
+# services.py
+
 from typing import List
-import speech_recognition as sr
-import moviepy.editor as mp
-import youtube_dl
 from fastapi import UploadFile
 import openai
-from pydub import AudioSegment
+import os
 from io import BytesIO
+from moviepy import VideoFileClip
+import youtube_dl
+from dotenv import load_dotenv
 
-openai.api_key = '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'
+load_dotenv()
 
-# process audio
-# Speech to Text Function
-async def process_audio(audio_file):
+# Speech to Text Function using OpenAI Whisper API
+async def process_audio(audio_file: UploadFile):
     try:
-        # Temporary file path for saving audio
-        audio_file_path = "temp_audio.wav"
-
-        # Read the uploaded file
+        # Read the uploaded audio file
         file_contents = await audio_file.read()
 
-        # Convert the uploaded file to WAV format using pydub
-        audio = AudioSegment.from_file(BytesIO(file_contents))
-        audio = audio.set_channels(1).set_frame_rate(16000)  # Mono and 16kHz for compatibility
-        audio.export(audio_file_path, format="wav")
+        # Use OpenAI's Whisper API to transcribe the audio
+        transcript = openai.Audio.transcribe(
+            "whisper-1",
+            BytesIO(file_contents)
+        )
 
-        # Initialize the recognizer
-        recognizer = sr.Recognizer()
-
-        # Transcribe the audio using SpeechRecognition
-        with sr.AudioFile(audio_file_path) as source:
-            audio_data = recognizer.record(source)
-            transcript = recognizer.recognize_google(audio_data)
-
-        # Clean up temporary files
-        os.remove(audio_file_path)
+        # Extract the transcription text
+        transcription_text = transcript['text']
 
         # Structure the transcript into notes using GPT
-        structured_notes = await structure_notes_with_gpt(transcript)
+        structured_notes = await structure_notes_with_gpt(transcription_text)
         return structured_notes
 
     except Exception as e:
         raise ValueError(f"Audio processing failed: {str(e)}")
 
-
-# Use GPT to structure notes
-# Define the function to structure notes with GPT
+# Function to structure notes with GPT
 async def structure_notes_with_gpt(transcribed_text):
     try:
-        # Create the prompt to pass to GPT for structuring
+        # Create the prompt to pass to GPT
         prompt = f"Structure the following text into organized notes:\n\n{transcribed_text}"
 
-        # Use the new OpenAI completions method (available in OpenAI Python >= 1.0.0)
-        response = openai.completions.create(
-            model="gpt-3.5-turbo",  # Or use "gpt-4" if you have access to GPT-4
-            prompt=prompt,
-            max_tokens=500,  # Adjust token count as needed
-            temperature=0.7  # Adjust temperature for creativity level
+        # Use OpenAI's GPT-3.5-Turbo model to generate structured notes
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an assistant that structures transcribed text into well-organized notes."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.7
         )
 
         # Extract the structured notes from the response
-        structured_notes = response['choices'][0]['text'].strip()  # Get the text response
-
+        structured_notes = response['choices'][0]['message']['content'].strip()
         return structured_notes
 
     except Exception as e:
         raise ValueError(f"Error in structuring notes with GPT: {str(e)}")
 
-import os
-
 # Process video (extract audio and convert to notes)
-async def process_audio_for_video(audio_file_path):
+async def process_video(video_file: UploadFile):
     try:
-        # Process the audio extracted from video (reuse the same audio processing logic)
-        # Placeholder for actual audio-to-text processing logic
-        processed_notes = "Notes extracted successfully from video audio."
-        return processed_notes
-    except Exception as e:
-        raise ValueError(f"Audio processing failed: {str(e)}")
-
-# Process video (extract audio and convert to notes)
-async def process_video(video_file):
-    try:
-        # Temporary path to save the extracted audio and video
-        audio_file_path = "temp_audio.wav"
-        video_file_path = "temp_video.mp4"
-
         # Save the uploaded video file temporarily
+        video_contents = await video_file.read()
+        video_file_path = "temp_video.mp4"
         with open(video_file_path, "wb") as f:
-            f.write(await video_file.read())
+            f.write(video_contents)
 
         # Load the video using moviepy
-        video = mp.VideoFileClip(video_file_path)
+        video = VideoFileClip(video_file_path)
 
         # Extract audio from the video
-        audio = video.audio
-        audio.write_audiofile(audio_file_path)
+        audio_file_path = "temp_audio.mp3"
+        video.audio.write_audiofile(audio_file_path)
 
-        # Ensure video file is closed after extracting audio
+        # Read the extracted audio file
+        with open(audio_file_path, 'rb') as audio_file:
+            audio_data = audio_file.read()
+
+        # Use OpenAI's Whisper API to transcribe the audio
+        transcript = openai.Audio.transcribe(
+            "whisper-1",
+            BytesIO(audio_data)
+        )
+
+        # Extract the transcription text
+        transcription_text = transcript['text']
+
+        # Structure the transcription into notes using GPT
+        structured_notes = await structure_notes_with_gpt(transcription_text)
+
+        # Clean up temporary files
         video.close()
-
-        # Open the audio file in binary mode and process it with process_audio_for_video
-        with open(audio_file_path, "rb") as audio_file:
-            # Use process_audio_for_video for video processing (not process_audio)
-            notes_content = await process_audio_for_video(audio_file)  # Pass the actual file object
-
-        # Clean up the temporary files
         os.remove(video_file_path)
         os.remove(audio_file_path)
 
-        return notes_content
+        return structured_notes
 
     except Exception as e:
         raise ValueError(f"Video processing failed: {str(e)}")
 
-# Process YouTube link (simplified version)
-import youtube_dl
+from typing import List, Union
+from fastapi import UploadFile
+import os
+from io import BytesIO
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
+from urllib.parse import urlparse, parse_qs
+from pydantic import HttpUrl
 
-# Process YouTube link (extract video description as notes)
-async def process_youtube_link(youtube_url: str) -> str:
+async def process_youtube_link(youtube_url: Union[str, HttpUrl]) -> str:
+    """Process YouTube video and extract transcript"""
     try:
-        ydl_opts = {
-            'quiet': True, 
-            'extractaudio': True,
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-        }
+        # Convert HttpUrl to string if needed
+        url_str = str(youtube_url)
 
-        # Extract video info using youtube_dl
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(youtube_url, download=False)
-            # Get video description or transcript
-            notes_content = info_dict.get('description', 'No description available.')
+        # Extract video ID from URL
+        video_id = None
+        if "youtube.com" in url_str:
+            parsed_url = urlparse(url_str)
+            video_id = parse_qs(parsed_url.query).get('v', [None])[0]
+        elif "youtu.be" in url_str:
+            video_id = url_str.split('/')[-1].split('?')[0]
 
-        return notes_content
+        if not video_id:
+            raise ValueError("Could not extract video ID from URL")
+
+        try:
+            # Get available transcripts
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            
+            # Try English first, then any available language
+            try:
+                transcript = transcript_list.find_transcript(['en'])
+            except:
+                # Get first available transcript
+                available_transcript = next(iter(transcript_list))
+                transcript = (
+                    available_transcript 
+                    if available_transcript.language_code == 'en' 
+                    else available_transcript.translate('en')
+                )
+
+            # Get transcript data
+            transcript_data = transcript.fetch()
+            
+            # Join transcript texts with proper spacing
+            full_transcript = ' '.join(
+                entry['text'].strip() 
+                for entry in transcript_data 
+                if entry.get('text')
+            )
+
+            if not full_transcript:
+                raise ValueError("No transcript text found")
+
+            return full_transcript
+
+        except TranscriptsDisabled:
+            raise ValueError("Transcripts are disabled for this video")
+        except Exception as e:
+            raise ValueError(f"Failed to fetch transcript: {str(e)}")
 
     except Exception as e:
         raise ValueError(f"YouTube processing failed: {str(e)}")
 
+    finally:
+        # Clean up any temporary files
+        temp_files = [f for f in os.listdir('.') if f.startswith('temp_')]
+        for f in temp_files:
+            try:
+                os.remove(f)
+            except:
+                pass
 
-async def process_text(input_text: str) -> str:
-    # Add logic for processing text (e.g., summarization or cleaning)
-    return input_text
-# Process live audio and convert to notes (this function is now synchronous)
-def process_live_audio(live_audio_file):
+# Process text input (structure or summarize text)
+async def process_text(input_text: str):
     try:
-        # Save the uploaded live audio temporarily
-        audio_file_path = "temp_live_audio.wav"
-        with open(audio_file_path, "wb") as f:
-            f.write(live_audio_file.file.read())  # Read from the file object synchronously
+        # Use GPT to structure or summarize the text
+        structured_notes = await structure_notes_with_gpt(input_text)
+        return structured_notes
 
-        # Use the speech recognition library to convert audio to text
-        recognizer = sr.Recognizer()
-        with sr.AudioFile(audio_file_path) as source:
-            audio = recognizer.record(source)  # Read the audio file
+    except Exception as e:
+        raise ValueError(f"Text processing failed: {str(e)}")
 
-        # Recognize the speech in the audio file and convert to text
-        try:
-            text = recognizer.recognize_google(audio)
-        except sr.UnknownValueError:
-            text = "Sorry, I couldn't understand the audio."
-        except sr.RequestError:
-            text = "Sorry, there was an error with the speech recognition service."
-
-        # Clean up the temporary file
-        os.remove(audio_file_path)
-
-        # You can integrate with GPT or another model here to generate structured notes from the text
-        notes_content = f"Transcribed text: {text}"
-
-        return notes_content
+# Process live audio and convert to notes
+async def process_live_audio(live_audio_file: UploadFile):
+    try:
+        # Use the same processing as for uploaded audio files
+        structured_notes = await process_audio(live_audio_file)
+        return structured_notes
 
     except Exception as e:
         raise ValueError(f"Live audio processing failed: {str(e)}")
