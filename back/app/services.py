@@ -8,31 +8,74 @@ from io import BytesIO
 from moviepy import VideoFileClip
 import youtube_dl
 from dotenv import load_dotenv
+from openai import OpenAI
+from pathlib import Path
 
 load_dotenv()
 
-# Speech to Text Function using OpenAI Whisper API
-async def process_audio(audio_file: UploadFile):
+# Supported audio formats
+SUPPORTED_FORMATS = ['mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm']
+MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB in bytes
+
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+async def process_audio(audio_file: UploadFile) -> str:
+    """Process audio file using OpenAI Whisper API"""
     try:
-        # Read the uploaded audio file
+        # Validate file format
+        file_ext = audio_file.filename.split('.')[-1].lower()
+        if file_ext not in SUPPORTED_FORMATS:
+            raise ValueError(
+                f"Unsupported format. Supported: {', '.join(SUPPORTED_FORMATS)}"
+            )
+
+        # Read and validate file size
         file_contents = await audio_file.read()
+        if len(file_contents) > MAX_FILE_SIZE:
+            raise ValueError(f"File exceeds {MAX_FILE_SIZE/1024/1024}MB limit")
 
-        # Use OpenAI's Whisper API to transcribe the audio
-        transcript = openai.Audio.transcribe(
-            "whisper-1",
-            BytesIO(file_contents)
-        )
+        # Create temp directory
+        temp_dir = Path("temp_files")
+        temp_dir.mkdir(exist_ok=True)
 
-        # Extract the transcription text
-        transcription_text = transcript['text']
+        # Generate unique temp file path
+        temp_path = temp_dir / f"temp_audio_{os.urandom(8).hex()}.{file_ext}"
+        try:
+            # Write file
+            with open(temp_path, "wb") as f:
+                f.write(file_contents)
 
-        # Structure the transcript into notes using GPT
-        structured_notes = await structure_notes_with_gpt(transcription_text)
-        return structured_notes
+            # Transcribe with Whisper
+            with open(temp_path, "rb") as f:
+                transcript = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=f,
+                    response_format="text"  # Direct text response
+                )
+
+            if not transcript:
+                raise ValueError("Failed to transcribe audio")
+
+            # Return transcript directly as it's already text
+            return transcript
+
+        finally:
+            # Cleanup
+            if temp_path.exists():
+                temp_path.unlink()
+            try:
+                if not any(temp_dir.iterdir()):
+                    temp_dir.rmdir()
+            except:
+                pass
 
     except Exception as e:
         raise ValueError(f"Audio processing failed: {str(e)}")
 
+    
+    
 # Function to structure notes with GPT
 async def structure_notes_with_gpt(transcribed_text):
     try:

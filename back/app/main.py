@@ -7,6 +7,14 @@ from app.auth import hash_password, verify_password
 from app.notes import router as note_router
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
+from datetime import timedelta
+from app.auth import (
+    create_access_token, 
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    oauth2_scheme,
+    SECRET_KEY,
+    ALGORITHM
+)
 # Define a Pydantic model for the input
 
 class SignupRequest(BaseModel):
@@ -32,6 +40,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
 
 # Create database tables and include router
 @app.on_event("startup")
