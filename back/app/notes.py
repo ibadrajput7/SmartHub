@@ -9,6 +9,10 @@ from app.input_handler import InputProcessor, SourceType
 import json
 from fastapi.responses import FileResponse
 from pathlib import Path
+from app.models import User
+from typing import Annotated
+from app.auth import get_current_user
+
 
 router = APIRouter()
 processor = InputProcessor()
@@ -17,12 +21,12 @@ ProcessType = Literal["notes", "summary", "quiz", "audio"]
 
 @router.post("/{source_type}/{process_type}")
 async def process_content(
+    current_user: Annotated[User, Depends(get_current_user)],
     source_type: SourceType,
     process_type: ProcessType,
-    user_id: int,
     content: Union[UploadFile, str] = File(None),
     youtube_url: Optional[HttpUrl] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Unified endpoint for processing different types of content
@@ -49,7 +53,7 @@ async def process_content(
             note = DBNote(
                 title=f"Notes from {source_type.value}",
                 content=notes_content,  # Store as JSON string
-                user_id=user_id
+                user_id=current_user.user_id
             )
             db.add(note)
             db.commit()
@@ -60,7 +64,7 @@ async def process_content(
             note = DBNote(
                 title=f"Summary from {source_type.value}",
                 content=result.get("summary", ""),  # Already a string
-                user_id=user_id
+                user_id=current_user.user_id
             )
             db.add(note)
             db.commit()
@@ -73,7 +77,7 @@ async def process_content(
                     title=f"Quiz from {source_type.value}",
                     question=question["question"],
                     answer=question["answer"],
-                    user_id=user_id
+                    user_id=current_user.user_id
                 )
                 db.add(quiz)
             db.commit()
@@ -91,21 +95,21 @@ async def process_content(
 
 # Additional endpoints for specific operations
 @router.get("/user/{user_id}/notes")
-async def get_user_notes(user_id: int, db: Session = Depends(get_db)):
+async def get_user_notes(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     """Get all notes for a user"""
-    notes = db.query(DBNote).filter(DBNote.user_id == user_id).all()
+    notes = db.query(DBNote).filter(DBNote.user_id == current_user.user_id).all()
     return notes
 
 @router.get("/user/{user_id}/quizzes")
-async def get_user_quizzes(user_id: int, db: Session = Depends(get_db)):
+async def get_user_quizzes(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     """Get all quizzes for a user"""
-    quizzes = db.query(DBQuiz).filter(DBQuiz.user_id == user_id).all()
+    quizzes = db.query(DBQuiz).filter(DBQuiz.user_id == current_user.user_id).all()
     return quizzes
 
 @router.delete("/notes/{note_id}")
-async def delete_note(note_id: int, db: Session = Depends(get_db)):
+async def delete_note(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     """Delete a specific note"""
-    note = db.query(DBNote).filter(DBNote.id == note_id).first()
+    note = db.query(DBNote).filter(DBNote.id == current_user.note_id).first()
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
     db.delete(note)

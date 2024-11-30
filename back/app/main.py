@@ -6,19 +6,23 @@ from app.auth import hash_password, verify_password
 # from app.routers import router as note_router
 from app.notes import router as note_router
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import timedelta
-# from app.auth import (
-#     # create_access_token, 
-#     ACCESS_TOKEN_EXPIRE_MINUTES,
-#     oauth2_scheme,
-#     SECRET_KEY,
-#     ALGORITHM
-# )
+from app.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, Token
+from app.auth import get_current_user
+from app.models import User
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from typing import Annotated, Optional
+
+
 # Define a Pydantic model for the input
 
 class SignupRequest(BaseModel):
-    username: str
+    username: Optional[str] = None
+    email: str
+    password: str
+
+class LoginRequest(BaseModel):
     email: str
     password: str
 
@@ -27,7 +31,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174"],  # React frontend origin
+    allow_origins=["http://localhost:3000"],  # Next.js frontend origin
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -40,8 +44,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
 
 # Create database tables and include router
 @app.on_event("startup")
@@ -59,48 +61,62 @@ def health():
 
 from fastapi.logger import logger
 
-@app.post("/signup")
-def signup(request: SignupRequest, db: Session = Depends(get_db)):
-    try:
-        # Log incoming request data
-        logger.info(f"Signup attempt for email: {request.email}")
-
-        # Check if user already exists
-        user = db.query(User).filter(User.email == request.email).first()
-        if user:
-            logger.info("User already exists.")
-            return {"message": "User already exists", "status": 400}
-
-        # Create new user
-        new_user = User(
-            username=request.username,
-            email=request.email,
-            hashed_password=hash_password(request.password),
-        )
-        logger.info(f"Creating new user: {new_user.username}")
-
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-
-        logger.info(f"User {new_user.username} created successfully.")
-        return {"message": "User created successfully", "user": new_user.username}
-    except Exception as e:
-        logger.error(f"Signup failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Server error")
-
-# Login endpoint
-from pydantic import BaseModel
-
-# Define the LoginRequest model
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
 @app.post("/login")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+async def login_for_access_token(
+    request: LoginRequest,
+    db: Session = Depends(get_db)
+) -> Token:
     user = db.query(User).filter(User.email == request.email).first()
+    
     if not user or not verify_password(request.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password"
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email},
+        expires_delta=access_token_expires
+    )
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user=user.username
+    )
 
-    return {"message": "Login successful", "user": user.username}
+@app.post("/signup")
+async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == request.email).first()
+    if user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    username = request.username if request.username else request.email
+
+    new_user = User(
+        username=username,
+        email=request.email,
+        hashed_password=hash_password(request.password)
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "message": "User created successfully",
+        "user": new_user.username
+    }
+
+@app.get("/protected")
+async def protected_route(current_user: Annotated[User, Depends(get_current_user)]):
+    return {"message": "This is a protected route", "user": current_user.username}
+
+
+
+@app.get("/me")
+def read_user_me(current_user: Annotated[User, Depends(get_current_user)]):
+    """
+    Get current user.
+    """
+    return {"message": "This is a protected route", "user": current_user.username}
