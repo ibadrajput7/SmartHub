@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Home, Settings, HelpCircle, User } from 'lucide-react'
+import Link from 'next/link'
+import { Home, Settings, HelpCircle, User, LogOut } from 'lucide-react'
 
 import {
   Sidebar,
@@ -13,7 +14,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface AppSidebarProps {
   user: {
@@ -30,62 +30,53 @@ export function AppSidebar({ user }: AppSidebarProps) {
       href: "/dashboard",
     },
     {
+      title: "My Notes",
+      icon: HelpCircle,
+      href: "/notes",
+    },
+    {
       title: "Settings",
       icon: Settings,
       href: "/settings",
     },
-    {
-      title: "Help",
-      icon: HelpCircle,
-      href: "/help",
-    },
   ]
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-border p-4">
-        <div className="flex items-center gap-2">
-          {/* <Avatar>
-            <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback>
-              {user.email.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar> */}
-          <div className="space-y-1">
-            <p className="text-sm font-medium leading-none">{user.email}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.is_superuser ? "Admin" : "User"}
-            </p>
-          </div>
+    <Sidebar className="fixed left-0 top-0 bottom-0 w-64 bg-gray-800 text-white p-4 hidden lg:block">
+      <SidebarHeader className="bg-gray-800 mb-4">
+        <div className="space-y-1 bg-gray-800">
+          <p className="text-sm font-medium leading-none">{user.email}</p>
+          <p className="text-xs leading-none text-white">
+            {user.is_superuser ? "Admin" : "User"}
+          </p>
         </div>
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarMenu>
+      <SidebarContent className="bg-gray-800" >
+        <SidebarMenu className="space-y-4">
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.href}>
-                  <item.icon className="h-4 w-4" />
+                <Link href={item.href} className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg">
+                  <item.icon className="w-5 h-5" />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="border-t border-border p-4">
+      <SidebarFooter className="mt-auto bg-gray-800">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <a href="/profile">
-                <User className="h-4 w-4" />
-                <span>Profile</span>
-              </a>
+              <Link href="/logout" className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg">
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }

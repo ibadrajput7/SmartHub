@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, Base, engine
 from app.models import User, Note, Quiz
@@ -14,6 +14,7 @@ from app.models import User
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated, Optional
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # Define a Pydantic model for the input
 
@@ -61,14 +62,30 @@ def health():
 
 from fastapi.logger import logger
 
-@app.post("/login")
+@app.post("/login", response_model=Token)
 async def login_for_access_token(
-    request: LoginRequest,
+    request: Request,
     db: Session = Depends(get_db)
-) -> Token:
-    user = db.query(User).filter(User.email == request.email).first()
+):
+    # Try to parse JSON body
+    try:
+        login_data = await request.json()
+        email = login_data.get('email')
+        password = login_data.get('password')
+    except:
+        # Fallback to form data
+        form = await request.form()
+        email = form.get('username')  # 'username' field is used in OAuth2PasswordRequestForm
+        password = form.get('password')
     
-    if not user or not verify_password(request.password, user.hashed_password):
+    if not email or not password:
+        raise HTTPException(
+            status_code=400,
+            detail="Email and password are required"
+        )
+    
+    user = db.query(User).filter(User.email == email).first()
+    if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password"

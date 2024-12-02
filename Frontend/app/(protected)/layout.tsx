@@ -48,16 +48,16 @@ export default async function Layout({
 {/* <div className="grid min-h-screen md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"> */}
     return (
       <SidebarProvider defaultOpen={defaultOpen}>
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen w-full">
           <AppSidebar user={user} />
           <SidebarInset>
-            <div className="flex flex-col w-full">
-              <header className="flex h-16 items-center gap-4 border-b px-6">
-                <SidebarTrigger />
+            <div className="flex flex-col">
+              <header className="flex h-16 items-center gap-4 border-b px-6 bg-gray-900">
+                <SidebarTrigger className="bg-black" />
                 {/* <DashboardHeader user={user} /> */}
               </header>
               {/* <UserProvider user={user}> */}
-                <main className="flex-1 p-6 w-full">
+                <main className="flex-1 p-6 bg-gray-900">
                   {children}
                 </main>
               {/* </UserProvider> */}

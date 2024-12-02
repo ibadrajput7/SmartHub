@@ -53,7 +53,7 @@ async def process_content(
             note = DBNote(
                 title=f"Notes from {source_type.value}",
                 content=notes_content,  # Store as JSON string
-                user_id=current_user.user_id
+                user_id=current_user.id
             )
             db.add(note)
             db.commit()
@@ -64,7 +64,7 @@ async def process_content(
             note = DBNote(
                 title=f"Summary from {source_type.value}",
                 content=result.get("summary", ""),  # Already a string
-                user_id=current_user.user_id
+                user_id=current_user.id
             )
             db.add(note)
             db.commit()
@@ -77,7 +77,7 @@ async def process_content(
                     title=f"Quiz from {source_type.value}",
                     question=question["question"],
                     answer=question["answer"],
-                    user_id=current_user.user_id
+                    user_id=current_user.id
                 )
                 db.add(quiz)
             db.commit()
@@ -94,16 +94,16 @@ async def process_content(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Additional endpoints for specific operations
-@router.get("/user/{user_id}/notes")
+@router.get("/user/notes")
 async def get_user_notes(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     """Get all notes for a user"""
-    notes = db.query(DBNote).filter(DBNote.user_id == current_user.user_id).all()
+    notes = db.query(DBNote).filter(DBNote.user_id == current_user.id).all()
     return notes
 
-@router.get("/user/{user_id}/quizzes")
+@router.get("/user/quizzes")
 async def get_user_quizzes(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     """Get all quizzes for a user"""
-    quizzes = db.query(DBQuiz).filter(DBQuiz.user_id == current_user.user_id).all()
+    quizzes = db.query(DBQuiz).filter(DBQuiz.user_id == current_user.id).all()
     return quizzes
 
 @router.delete("/notes/{note_id}")
@@ -115,6 +115,15 @@ async def delete_note(current_user: Annotated[User, Depends(get_current_user)], 
     db.delete(note)
     db.commit()
     return {"message": "Note deleted successfully"}
+
+# New get_note_by_id endpoint
+@router.get("/notes/{note_id}")
+async def get_note_by_id(note_id: int, current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    """Get a specific note by ID"""
+    note = db.query(DBNote).filter(DBNote.id == note_id, DBNote.user_id == current_user.id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    return {"result": note}
 
 # notes.py - Add new endpoint for audio streaming
 @router.get("/audio/{filename}")
