@@ -1,7 +1,12 @@
-import { BrainCircuit, HelpCircle } from 'lucide-react'
+'use client'
+
+import { BrainCircuit, HelpCircle, Menu } from 'lucide-react'
+import { useSidebar } from '@/contexts/SidebarContext'
 import MobileMenuButton from './MobileMenuButton'
 
 export default function Header() {
+  const { toggleSidebar } = useSidebar()
+
   return (
     <header className="fixed top-0 left-0 right-0 bg-black z-50 h-16 flex items-center justify-between px-4 md:px-6 border-b border-purple-900">
       {/* Left side - Logo and Brand */}
@@ -23,7 +28,10 @@ export default function Header() {
         </div>
 
         {/* Mobile Menu Button */}
-        <MobileMenuButton />
+        {/* <MobileMenuButton /> */}
+        <button className="lg:hidden" onClick={toggleSidebar}>
+          <Menu className="w-6 h-6 text-purple-500" />
+        </button>
       </div>
     </header>
   )

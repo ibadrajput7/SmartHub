@@ -1,9 +1,13 @@
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
-// import { UserProvider } from "@/lib/context/UserContext"
+import { useState } from 'react'
+import { SidebarProvider } from '@/contexts/SidebarContext'
 
-import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+// import { UserProvider } from "@/lib/context/UserContext"
+import HeaderSider from '@/components/HeaderSider'
+import SiderBar from '@/components/Siderbar'
+// import { AppSidebar } from "@/components/app-sidebar"
+// import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import DashboardHeader from "@/componentsCopy/dashboard-header"
 
 const API_URL = "http://127.0.0.1:5000"
@@ -45,24 +49,20 @@ export default async function Layout({
     // Get cookie for sidebar state
     const cookieStore = cookies()
     const defaultOpen = cookieStore.get("sidebar:state")?.value === "true"
-{/* <div className="grid min-h-screen md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"> */}
+
     return (
-      <SidebarProvider defaultOpen={defaultOpen}>
-        <div className="flex min-h-screen w-full">
-          <AppSidebar user={user} />
-          <SidebarInset>
-            <div className="flex flex-col">
-              <header className="flex h-16 items-center gap-4 border-b px-6 bg-gray-900">
-                <SidebarTrigger className="bg-black" />
-                {/* <DashboardHeader user={user} /> */}
-              </header>
-              {/* <UserProvider user={user}> */}
-                <main className="flex-1 p-6 bg-gray-900">
-                  {children}
-                </main>
-              {/* </UserProvider> */}
-            </div>
-          </SidebarInset>
+      <SidebarProvider>
+        <div className="min-h-screen bg-gray-900">
+          <HeaderSider />
+          <SiderBar />
+          
+          <div className="lg:pl-64 flex flex-col min-h-screen">
+            <main className="flex-1 pt-16">
+              <div className="px-4 sm:px-6 lg:px-8 py-8">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
       </SidebarProvider>
     )

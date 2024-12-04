@@ -3,8 +3,6 @@
 
 import { useState } from 'react';
 import { FileText, HelpCircle, Radio, Youtube } from 'lucide-react';
-import HeaderSider from '@/components/HeaderSider'
-import SiderBar from '@/components/Siderbar'
 import GenerateNotesModal from '@/components/modals/GenerateNotesModal';
 import QuizModal from '@/components/modals/QuizModal';
 import SummarizeModal from '@/components/modals/SummarizeModal';
@@ -28,8 +26,8 @@ const UserDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <HeaderSider/>
-      <SiderBar/>
+      {/* <HeaderSider/>
+      <SiderBar/> */}
       
       {/* Main Content */}
       <div className="">
