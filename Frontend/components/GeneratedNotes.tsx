@@ -12,7 +12,7 @@ export default function GeneratedNotes({ notes = [], totalScore, feedback = '' }
     <div className="space-y-6">
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-white">Summary</CardTitle>
+          <CardTitle className="text-white">YOUR NOTES ARE GENERATED</CardTitle>
           <CardDescription className="text-gray-400">
             Total Score: {totalScore !== undefined ? totalScore.toFixed(2) : 'N/A'}
           </CardDescription>

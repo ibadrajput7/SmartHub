@@ -64,11 +64,6 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 <span className="text-lg">Upload audio</span>
               </button>
 
-              <button className="w-full bg-black text-purple-200 hover:bg-purple-600 transition-colors p-4 rounded-xl flex items-center gap-3 text-left" onClick={() => setShowRecordAudio(true)}>
-                <Mic className="w-6 h-6 text-red-400" />
-                <span className="text-lg">Record audio</span>
-              </button>
-
               <button className="w-full bg-black text-purple-200 hover:bg-purple-600 transition-colors p-4 rounded-xl flex items-center gap-3 text-left" onClick={() => setShowEnterTopic(true)}>
                 <Type className="w-6 h-6" />
                 <span className="text-lg">Enter topic</span>
@@ -76,7 +71,7 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 
               <button className="w-full bg-black text-purple-200 hover:bg-purple-600 transition-colors p-4 rounded-xl flex items-center gap-3 text-left" onClick={() => setShowUploadVideo(true)}>
                 <Upload className="w-6 h-6" />
-                <span className="text-lg">Upload video</span>
+                <span className="text-lg">Upload text</span>
               </button>
 
               <button className="w-full bg-black text-purple-200 hover:bg-purple-600 transition-colors p-4 rounded-xl flex items-center gap-3 text-left" onClick={() => setShowYoutubeVideo(true)}>

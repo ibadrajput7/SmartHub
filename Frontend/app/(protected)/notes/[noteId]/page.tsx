@@ -1,6 +1,8 @@
 import { getNoteById } from './actions'
 import GeneratedNotes from '@/components/GeneratedNotes'
 import { NoteData, Note } from '../types'
+import HeaderSider from '@/components/HeaderSider'
+import SiderBar from '@/components/Siderbar'
 
 export default async function NotePage({ params }: { params: { noteId: string } }) {
   const noteData = await getNoteById(params.noteId)
@@ -18,6 +20,8 @@ export default async function NotePage({ params }: { params: { noteId: string } 
 
   return (
     <div className="container mx-auto p-4">
+      <HeaderSider/>
+      <SiderBar/>
       <h1 className="text-3xl font-bold mb-8 text-white">Generated Notes</h1>
       <GeneratedNotes
         notes={formattedNotes.notes}
