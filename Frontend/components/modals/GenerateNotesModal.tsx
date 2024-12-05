@@ -6,6 +6,7 @@ import AudioUploadModal from './AudioUploadModal'
 import RecordAudioModal from './RecordAudioModal'
 import EnterTopicModal from './EnterTopicModal'
 import UploadVideoModal from './UploadVideoModal'
+import TextUploadModal from './TextUploadModal'
 import YoutubeVideoModal from './YoutubeVideoModal'
 import GeneratedNotes from '../GeneratedNotes'
 
@@ -15,6 +16,7 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   const [showEnterTopic, setShowEnterTopic] = useState(false)
   const [showUploadVideo, setShowUploadVideo] = useState(false)
   const [showYoutubeVideo, setShowYoutubeVideo] = useState(false)
+  const [showTextUpload, setShowTextUpload] = useState(false)
   const [generatedNotes, setGeneratedNotes] = useState<any>(null)
 
   if (!isOpen) return null
@@ -69,7 +71,7 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 <span className="text-lg">Enter topic</span>
               </button>
 
-              <button className="w-full bg-black text-purple-200 hover:bg-purple-600 transition-colors p-4 rounded-xl flex items-center gap-3 text-left" onClick={() => setShowUploadVideo(true)}>
+              <button className="w-full bg-black text-purple-200 hover:bg-purple-600 transition-colors p-4 rounded-xl flex items-center gap-3 text-left" onClick={() => setShowTextUpload(true)}>
                 <Upload className="w-6 h-6" />
                 <span className="text-lg">Upload text</span>
               </button>
@@ -86,6 +88,7 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       <AudioUploadModal 
         isOpen={showAudioUpload}
         onClose={() => setShowAudioUpload(false)}
+        mode='notes'
         // onNotesGenerated={handleNotesGenerated}
       />
       
@@ -99,6 +102,12 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         onClose={() => setShowEnterTopic(false)}
       />
 
+      <TextUploadModal
+        isOpen={showTextUpload}
+        onClose={() => setShowTextUpload(false)}
+        mode='notes'
+      />
+
       <UploadVideoModal
         isOpen={showUploadVideo}
         onClose={() => setShowUploadVideo(false)}
@@ -107,6 +116,7 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       <YoutubeVideoModal
         isOpen={showYoutubeVideo}
         onClose={() => setShowYoutubeVideo(false)}
+        mode="notes"
       />
     </>
   )

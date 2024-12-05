@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSidebar } from '@/contexts/SidebarContext'
 
 const menuItems = [
-  { icon: <Home className="w-5 h-5" />, text: 'Home', path: '/page'},
+  { icon: <Home className="w-5 h-5" />, text: 'Home', path: '/dashboard'},
   { icon: <FileText className="w-5 h-5" />, text: 'My Notes', path: '/MyNotes' },
   { icon: <BarChart2 className="w-5 h-5" />, text: 'Analytics', path: '/Analytics' },
   { icon: <HelpCircle className="w-5 h-5" />, text: 'How to use', path: '/How' },

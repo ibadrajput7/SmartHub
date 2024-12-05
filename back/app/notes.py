@@ -125,6 +125,22 @@ async def get_note_by_id(note_id: int, current_user: Annotated[User, Depends(get
         raise HTTPException(status_code=404, detail="Note not found")
     return {"result": note}
 
+@router.get("/summaries/{summary_id}")
+async def get_summary_by_id(
+    summary_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db)
+):
+    """Get a specific summary by ID"""
+    summary = db.query(DBNote).filter(
+        DBNote.id == summary_id,
+        DBNote.user_id == current_user.id
+    ).first()
+    if not summary:
+        raise HTTPException(status_code=404, detail="Summary not found")
+
+    return {"result": summary}
+
 # notes.py - Add new endpoint for audio streaming
 @router.get("/audio/{filename}")
 async def get_audio(filename: str):

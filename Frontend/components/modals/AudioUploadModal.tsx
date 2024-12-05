@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Upload, ChevronLeft } from 'lucide-react'
-import { generateNotes } from '@/app/(protected)/dashboard/actions'
+import { generateNotes, generateSummaryFromAudio } from '@/app/(protected)/dashboard/actions'
 
 interface AudioUploadModalProps {
   isOpen: boolean
   onClose: () => void
+  mode: 'notes' | 'summary'
 }
 
-const AudioUploadModal = ({ isOpen, onClose }: AudioUploadModalProps) => {
+const AudioUploadModal = ({ isOpen, onClose, mode }: AudioUploadModalProps) => {
   const [file, setFile] = useState<File | null>(null)
   const [language, setLanguage] = useState('English')
   const [isLoading, setIsLoading] = useState(false)
@@ -25,7 +26,7 @@ const AudioUploadModal = ({ isOpen, onClose }: AudioUploadModalProps) => {
     }
   }
 
-  const handleGenerateNotes = async () => {
+  const handleGenerate = async () => {
     if (!file) {
       setError('Please select an audio file')
       return
@@ -37,11 +38,18 @@ const AudioUploadModal = ({ isOpen, onClose }: AudioUploadModalProps) => {
     try {
       const formData = new FormData()
       formData.append('content', file)
-      const result = await generateNotes(formData)
-      router.push(`/notes/${result.note_id}`)
+      
+      let result
+      if (mode === 'notes') {
+        result = await generateNotes(formData)
+        router.push(`/notes/${result.note_id}`)
+      } else if (mode === 'summary') {
+        result = await generateSummaryFromAudio(formData)
+        router.push(`/summaries/${result.note_id}`)
+      }
       onClose()
     } catch (err) {
-      setError('Failed to generate notes. Please try again.')
+      setError('Failed to generate. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -100,11 +108,11 @@ const AudioUploadModal = ({ isOpen, onClose }: AudioUploadModalProps) => {
             </label>
 
             <button
-              onClick={handleGenerateNotes}
+              onClick={handleGenerate}
               disabled={isLoading || !file}
               className="w-full bg-purple-600 text-white hover:bg-purple-700 p-4 rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Generating...' : 'Generate Notes'}
+              {isLoading ? 'Generating...' : `Generate ${mode === 'summary' ? 'Summary' : 'Notes'}`}
             </button>
 
             <button
