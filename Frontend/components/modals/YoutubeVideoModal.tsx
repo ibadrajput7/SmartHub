@@ -5,13 +5,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, FileText, ChevronLeft } from 'lucide-react'
-import { generateNotesFromYouTube } from '@/app/(protected)/dashboard/actions'
-import { generateSummaryFromYouTube } from '@/app/(protected)/dashboard/actions'
+import { generateNotesFromYouTube, generateSummaryFromYouTube, generateQuizFromYouTube } from '@/app/(protected)/dashboard/actions'
 
 interface YoutubeVideoModalProps {
   isOpen: boolean
   onClose: () => void
-  mode: 'notes' | 'summary'
+  mode: 'notes' | 'summary' | 'quiz'
 }
 
 const YoutubeVideoModal = ({ isOpen, onClose, mode }: YoutubeVideoModalProps) => {
@@ -39,6 +38,9 @@ const YoutubeVideoModal = ({ isOpen, onClose, mode }: YoutubeVideoModalProps) =>
       } else if (mode === 'summary') {
         result = await generateSummaryFromYouTube(youtubeUrl)
         router.push(`/summaries/${result.note_id}`)
+      } else if (mode === 'quiz') {
+        result = await generateQuizFromYouTube(youtubeUrl)
+        router.push(`/quiz/${result.quiz_id}`)
       }
       onClose()
     } catch (err) {

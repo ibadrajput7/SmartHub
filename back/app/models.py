@@ -28,7 +28,7 @@ class Note(Base):
 
 
 
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -36,7 +36,6 @@ class Quiz(Base):
     __tablename__ = "quizzes"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    question = Column(String)
-    answer = Column(String)
+    questions = Column(JSON)  # Store questions as JSON array
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User")

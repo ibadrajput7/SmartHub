@@ -27,7 +27,7 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-app = FastAPI()
+app = FastAPI(title="SmartHub")
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(

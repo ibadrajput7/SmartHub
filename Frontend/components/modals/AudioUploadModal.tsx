@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Upload, ChevronLeft } from 'lucide-react'
-import { generateNotes, generateSummaryFromAudio } from '@/app/(protected)/dashboard/actions'
+import { generateNotes, generateSummaryFromAudio, generateQuizFromAudio } from '@/app/(protected)/dashboard/actions'
 
 interface AudioUploadModalProps {
   isOpen: boolean
   onClose: () => void
-  mode: 'notes' | 'summary'
+  mode: 'notes' | 'summary' | 'quiz'
 }
 
 const AudioUploadModal = ({ isOpen, onClose, mode }: AudioUploadModalProps) => {
@@ -46,6 +46,9 @@ const AudioUploadModal = ({ isOpen, onClose, mode }: AudioUploadModalProps) => {
       } else if (mode === 'summary') {
         result = await generateSummaryFromAudio(formData)
         router.push(`/summaries/${result.note_id}`)
+      } else if (mode === 'quiz') {
+        result = await generateQuizFromAudio(formData)
+        router.push(`/quiz/${result.quiz_id}`)
       }
       onClose()
     } catch (err) {

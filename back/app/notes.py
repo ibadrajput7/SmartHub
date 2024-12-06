@@ -72,15 +72,15 @@ async def process_content(
             result["note_id"] = note.id
 
         elif process_type == "quiz":
-            for question in result.get("questions", []):
-                quiz = DBQuiz(
-                    title=f"Quiz from {source_type.value}",
-                    question=question["question"],
-                    answer=question["answer"],
-                    user_id=current_user.id
-                )
-                db.add(quiz)
+            quiz = DBQuiz(
+                title=f"Quiz from {source_type.value}",
+                questions=result.get("questions", []),  # Store entire questions array
+                user_id=current_user.id
+            )
+            db.add(quiz)
             db.commit()
+            db.refresh(quiz)
+            result["quiz_id"] = quiz.id
             result["quiz_saved"] = True
 
         return {
@@ -140,6 +140,29 @@ async def get_summary_by_id(
         raise HTTPException(status_code=404, detail="Summary not found")
 
     return {"result": summary}
+
+@router.get("/quizzes/{quiz_id}")
+async def get_quiz_by_id(
+    quiz_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db)
+):
+    """Get a specific quiz by ID"""
+    quiz = db.query(DBQuiz).filter(
+        DBQuiz.id == quiz_id,
+        DBQuiz.user_id == current_user.id
+    ).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Format the response to match the expected structure
+    quiz_data = {
+        "id": quiz.id,
+        "title": quiz.title,
+        "questions": quiz.questions,  # This is now the array of questions
+        "user_id": quiz.user_id
+    }
+    return {"result": quiz_data}
 
 # notes.py - Add new endpoint for audio streaming
 @router.get("/audio/{filename}")

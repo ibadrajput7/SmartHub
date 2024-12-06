@@ -5,12 +5,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, FileText, ChevronLeft, Upload } from 'lucide-react'
-import { generateNotesFromText, generateSummaryFromText } from '@/app/(protected)/dashboard/actions'
+import { generateNotesFromText, generateSummaryFromText, generateQuizFromText } from '@/app/(protected)/dashboard/actions'
 
 interface TextUploadModalProps {
   isOpen: boolean
   onClose: () => void
-  mode: 'notes' | 'summary'
+  mode: 'notes' | 'summary' | 'quiz'
 }
 
 const TextUploadModal = ({ isOpen, onClose, mode }: TextUploadModalProps) => {
@@ -63,6 +63,9 @@ const TextUploadModal = ({ isOpen, onClose, mode }: TextUploadModalProps) => {
       } else if (mode === 'summary') {
         result = await generateSummaryFromText(formData)
         router.push(`/summaries/${result.note_id}`)
+      } else if (mode === 'quiz') {
+        result = await generateQuizFromText(formData)
+        router.push(`/quiz/${result.quiz_id}`)
       }
       onClose()
     } catch (err) {
