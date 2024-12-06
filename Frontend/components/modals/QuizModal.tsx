@@ -21,7 +21,7 @@ const QuizModal = ({ isOpen, onClose }: QuizModalProps) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-[60] flex items-start justify-center pt-[10vh]">
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-[10vh]">
       <div className="bg-gray-900 rounded-2xl w-full max-w-lg mx-4 overflow-hidden">
           <div className="p-6 pb-2">
             <div className="flex justify-between items-center">
