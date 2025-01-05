@@ -2,7 +2,7 @@
 
 import { X, FileText, ChevronLeft } from 'lucide-react'
 
-const EnterTopicModal = ({ isOpen, onClose }) => {
+const EnterTopicModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   if (!isOpen) return null
 
   return (

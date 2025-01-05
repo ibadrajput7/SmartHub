@@ -25,23 +25,26 @@ export default function LoginPage({
       <Card className="w-full max-w-md overflow-hidden rounded-3xl border-0 bg-gray-900/95">
         <CardHeader className="mb-10 space-y-2 text-center">
           <h2 className="bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-4xl font-bold text-transparent">
-            Welcome Back
+            Welcome
           </h2>
           <p className="text-gray-400">Sign in to continue your journey</p>
         </CardHeader>
 
         <CardContent>
           <form action={login} className="space-y-6">
+            <div className="mt-10">
+            {/* <label htmlFor="" className="text-gray-400">Enter Your Details</label> */}
+            </div>
+            <label htmlFor="" className="text-gray-400" >Enter Your Email-address & Password:</label>
             <div className="relative">
+            {/* <label htmlFor="" className="text-gray-400">Email-address:</label> */}
               <Label
                 htmlFor="email"
                 className={`absolute left-3 transition-all duration-200 ${
                   focusedInput === 'email'
-                    ? '-top-2.5 text-sm text-purple-600'
-                    : 'top-3.5 text-gray-400'
+                    ? '-top-2.5 text-sm text-purple-600' : 'top-3.5 text-gray-400'
                 }`}
               >
-                Email Address
               </Label>
               <Mail
                 size={20}
@@ -52,14 +55,16 @@ export default function LoginPage({
               <Input
                 type="email"
                 name="email"
-                className="h-14 rounded-xl border-gray-200 bg-gray-900 px-4 pt-4 transition-all focus:border-purple-600 focus:ring-2 focus:ring-purple-600"
+                className="h-14 rounded-xl border-purple-400 bg-gray-400 px-4 pt-4 transition-all focus:border-purple-600 focus:ring-2 focus:ring-purple-600"
                 onFocus={() => setFocusedInput('email')}
                 onBlur={() => setFocusedInput(null)}
                 required
               />
             </div>
+            
 
             <div className="relative">
+           
               <Label
                 htmlFor="password"
                 className={`absolute left-3 transition-all duration-200 ${
@@ -68,7 +73,7 @@ export default function LoginPage({
                     : 'top-3.5 text-gray-400'
                 }`}
               >
-                Password
+                
               </Label>
               <button
                 type="button"
@@ -82,7 +87,7 @@ export default function LoginPage({
               <Input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
-                className="h-14 rounded-xl border-gray-200 bg-gray-900 px-4 pt-4 transition-all focus:border-purple-600 focus:ring-2 focus:ring-purple-600"
+                className="h-14 rounded-xl border-purple-400 bg-gray-400 px-4 pt-4 transition-all focus:border-purple-600 focus:ring-2 focus:ring-purple-600"
                 onFocus={() => setFocusedInput('password')}
                 onBlur={() => setFocusedInput(null)}
                 required
@@ -130,11 +135,26 @@ export default function LoginPage({
 
               <SubmitButton
                 variant="outline"
-                className="w-full"
+                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-blue-500 p-1 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
                 formAction={signup}
                 pendingText="Creating account..."
               >
-                Create Account
+               <span className="relative flex items-center justify-center text-white">
+                  Create Account
+                  <svg
+                    className="ml-2 h-5 w-5 -rotate-45 transition-transform duration-300 ease-out group-hover:translate-x-1 group-hover:translate-y-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
+                  </svg>
+                </span>
               </SubmitButton>
             </div>
           </form>

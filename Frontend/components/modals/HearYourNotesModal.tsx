@@ -5,7 +5,7 @@ import { X, Upload, FileText } from 'lucide-react'
 import HearPDFUploadModal from './HearPDFUploadModal'
 import HearTextUploadModal from './HearTextUploadModal'
 
-const HearYourNotesModal = ({ isOpen, onClose }) => {
+const HearYourNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [showPDFUpload, setShowPDFUpload] = useState(false)
   const [showTextUpload, setShowTextUpload] = useState(false)
 

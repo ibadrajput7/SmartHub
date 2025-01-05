@@ -2,7 +2,7 @@
 
 import { X, Upload, Radio, ChevronLeft } from 'lucide-react'
 
-const HearPDFUploadModal = ({ isOpen, onClose }) => {
+const HearPDFUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   if (!isOpen) return null
 
   return (

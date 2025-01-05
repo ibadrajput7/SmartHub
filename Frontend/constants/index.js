@@ -78,9 +78,9 @@ export const notificationImages = [notification4, notification3, notification2];
 export const companyLogos = [yourlogo, yourlogo, yourlogo, yourlogo, yourlogo];
 
 export const brainwaveServices = [
-  "Photo generating",
-  "Photo enhance",
-  "Seamless Integration",
+  "Accurate and Structure data",
+  "Online Testing",
+  "Content verification",
 ];
 
 export const brainwaveServicesIcons = [
@@ -128,17 +128,17 @@ export const roadmap = [
 ];
 
 export const collabText =
-  "With smart automation and top-notch security, it's the perfect solution for teams looking to work smarter.";
+  "With Smarthub, learning becomes limitless, and productivity knows no bounds.";
 
 export const collabContent = [
   {
     id: "0",
-    title: "Seamless Integration",
+    title: "Seamless Study Integration",
     text: collabText,
   },
   {
     id: "1",
-    title: "Smart Automation",
+    title: "AI Automation",
   },
   {
     id: "2",
@@ -244,16 +244,16 @@ export const pricing = [
 export const benefits = [
   {
     id: "0",
-    title: "Ask anything",
-    text: "Lets users quickly find answers to their questions without having to search through multiple sources.",
+    title: "Notes generation",
+    text: "Transform audio, video, or live recordings into organized, detailed notes, saving time and enhancing your study experience effortlessly.",
     backgroundUrl: "./src/assets/benefits/card-1.svg",
     iconUrl: benefitIcon1,
     imageUrl: benefitImage2,
   },
   {
     id: "1",
-    title: "Improve everyday",
-    text: "The app uses natural language processing to understand user queries and provide accurate and relevant responses.",
+    title: "Generate Quizzes",
+    text: "Generate personalized quizzes from various sources, testing knowledge with multiple-choice, formats at varying difficulty.",
     backgroundUrl: "./src/assets/benefits/card-2.svg",
     iconUrl: benefitIcon2,
     imageUrl: benefitImage2,
@@ -261,16 +261,16 @@ export const benefits = [
   },
   {
     id: "2",
-    title: "Connect everywhere",
-    text: "Connect with the AI chatbot from anywhere, on any device, making it more accessible and convenient.",
+    title: "Summarization",
+    text: "Quickly condense your notes into concise, focused summaries, capturing key points and making revision easy and effective.",
     backgroundUrl: "./src/assets/benefits/card-3.svg",
     iconUrl: benefitIcon3,
     imageUrl: benefitImage2,
   },
   {
     id: "3",
-    title: "Fast responding",
-    text: "Lets users quickly find answers to their questions without having to search through multiple sources.",
+    title: "Hear Your Notes",
+    text: "Convert your notes into natural-sounding speech for easy listening, improving retention, and offering an audio-based learning experience.",
     backgroundUrl: "./src/assets/benefits/card-4.svg",
     iconUrl: benefitIcon4,
     imageUrl: benefitImage2,
@@ -278,16 +278,16 @@ export const benefits = [
   },
   {
     id: "4",
-    title: "Ask anything",
-    text: "Lets users quickly find answers to their questions without having to search through multiple sources.",
+    title: "Youtube Accuracy",
+    text: "Check the accuracy and reliability of YouTube educational videos, ensuring high-quality, trustworthy content for effective learning.",
     backgroundUrl: "./src/assets/benefits/card-5.svg",
     iconUrl: benefitIcon1,
     imageUrl: benefitImage2,
   },
   {
     id: "5",
-    title: "Improve everyday",
-    text: "The app uses natural language processing to understand user queries and provide accurate and relevant responses.",
+    title: "Chatbot Assistance",
+    text: "Get instant help from our intelligent chatbot, answering your questions, guiding you through Smarthub, and providing support anytime.",
     backgroundUrl: "./src/assets/benefits/card-6.svg",
     iconUrl: benefitIcon2,
     imageUrl: benefitImage2,

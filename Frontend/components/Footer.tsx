@@ -14,13 +14,13 @@ const Footer: React.FC = (): JSX.Element => {
   return (
     <Section 
       crosses={true}
-      className="!px-0 !py-10"
+      className="!px-0 !py-10 bg-black mt-6"
       id="footer"
       crossesOffset=""
       customPaddings={false}
     >
-      <div className="container flex sm:justify-between justify-center items-center gap-10 max-sm:flex-col">
-        <p className="caption text-n-4 lg:block">
+      <div className="container flex sm:justify-between justify-center items-center gap-10 max-sm:flex-col bg-black">
+        <p className="caption text-n-4 lg:block text-white">
           © {new Date().getFullYear()}. All rights reserved.
         </p>
 
@@ -31,7 +31,7 @@ const Footer: React.FC = (): JSX.Element => {
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-10 h-10 bg-n-7 rounded-full transition-colors hover:bg-n-6"
+              className="flex items-center justify-center w-10 h-10 bg-white rounded-full transition-colors hover:bg-black"
             >
               <Image 
                 src={item.iconUrl} 

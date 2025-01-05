@@ -2,43 +2,58 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, Base, engine
 from app.models import User, Note, Quiz
-from app.auth import hash_password, verify_password
-# from app.routers import router as note_router
 from app.notes import router as note_router
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from datetime import timedelta
-from app.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, Token
-from app.auth import get_current_user
-from app.models import User
+from app.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, Token, get_current_user, hash_password, verify_password
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated, Optional
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# Define a Pydantic model for the input
+
 
 class SignupRequest(BaseModel):
     username: Optional[str] = None
     email: str
-    password: str
+    password: str = Field(..., min_length=6, max_length=8) 
+
+    @validator("password")
+    def validate_password(cls, value):
+        if len(value) > 8:
+            raise ValueError("Password cannot be more than 8 characters.")
+        return value
+
+    @validator("email")
+    def validate_email(cls, value):
+        if len(value) > 15:
+            raise ValueError("Email must not exceed 15 characters.")
+        if not value.endswith(".com"):
+            raise ValueError("Email must end with '.com'.")
+        return value    
 
 class LoginRequest(BaseModel):
     email: str
-    password: str
+    password: str= Field(..., min_length=6, max_length=8)  
+
+    @validator("password")
+    def validate_password(cls, value):
+        if len(value) > 8:
+            raise ValueError("Password cannot be more than 8 characters.")
+        return value
 
 app = FastAPI(title="SmartHub")
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js frontend origin
+    allow_origins=["http://localhost:3000"],  
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],  
+    allow_headers=["*"],  
 )
 
-# Dependency for getting the database session
 def get_db():
     db = SessionLocal()
     try:
@@ -46,13 +61,10 @@ def get_db():
     finally:
         db.close()
 
-# Create database tables and include router
+
 @app.on_event("startup")
 def startup():
-    # Create all tables in the database
     Base.metadata.create_all(bind=engine)
-    
-    # Include the note router
     app.include_router(note_router, prefix="/api")
 
 @app.get("/health")
@@ -67,15 +79,15 @@ async def login_for_access_token(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    # Try to parse JSON body
+    
     try:
         login_data = await request.json()
         email = login_data.get('email')
         password = login_data.get('password')
     except:
-        # Fallback to form data
+        
         form = await request.form()
-        email = form.get('username')  # 'username' field is used in OAuth2PasswordRequestForm
+        email = form.get('username')  
         password = form.get('password')
     
     if not email or not password:
@@ -89,6 +101,13 @@ async def login_for_access_token(
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password"
+        )
+        
+    if len(user.hashed_password) < 6:
+        raise HTTPException(
+            status_code=400, 
+            detail="Password is too short, please reset it"
+            
         )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

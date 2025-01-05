@@ -3,18 +3,14 @@
 import { useState } from 'react'
 import { X, Upload, Mic, Type, Youtube, ChevronLeft, FileText } from 'lucide-react'
 import AudioUploadModal from './AudioUploadModal'
-import RecordAudioModal from './RecordAudioModal'
 import EnterTopicModal from './EnterTopicModal'
-import UploadVideoModal from './UploadVideoModal'
 import TextUploadModal from './TextUploadModal'
 import YoutubeVideoModal from './YoutubeVideoModal'
 import GeneratedNotes from '../GeneratedNotes'
 
 const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [showAudioUpload, setShowAudioUpload] = useState(false)
-  const [showRecordAudio, setShowRecordAudio] = useState(false)
   const [showEnterTopic, setShowEnterTopic] = useState(false)
-  const [showUploadVideo, setShowUploadVideo] = useState(false)
   const [showYoutubeVideo, setShowYoutubeVideo] = useState(false)
   const [showTextUpload, setShowTextUpload] = useState(false)
   const [generatedNotes, setGeneratedNotes] = useState<any>(null)
@@ -91,11 +87,6 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         mode='notes'
         // onNotesGenerated={handleNotesGenerated}
       />
-      
-      <RecordAudioModal
-        isOpen={showRecordAudio}
-        onClose={() => setShowRecordAudio(false)}
-      />
 
       <EnterTopicModal
         isOpen={showEnterTopic}
@@ -106,11 +97,6 @@ const GenerateNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         isOpen={showTextUpload}
         onClose={() => setShowTextUpload(false)}
         mode='notes'
-      />
-
-      <UploadVideoModal
-        isOpen={showUploadVideo}
-        onClose={() => setShowUploadVideo(false)}
       />
 
       <YoutubeVideoModal

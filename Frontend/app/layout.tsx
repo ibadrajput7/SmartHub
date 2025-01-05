@@ -8,7 +8,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Nextjs FastAPI template",
+  title: "SMART HUB",
   description:
     "Starter template for building nextjs frontend and fastapi backend",
 };
