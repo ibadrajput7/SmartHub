@@ -294,3 +294,95 @@ export async function generateQuizFromAudio(formData: FormData) {
 
   return data.result
 }
+
+// Add interface for API response
+interface AnalysisResponse {
+  score: number
+  confidence: string
+  topic_keywords: string[]
+  topic_coverage: number
+}
+
+// Update analyzeYoutubeVideo function
+export async function analyzeYoutubeVideo(url: string, topic: string): Promise<AnalysisResponse> {
+  const accessToken = cookies().get('access_token')?.value
+
+  try {
+    // Update endpoint path to match backend
+    const response = await fetch('http://127.0.0.1:5000/analyze-video', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        url: url,
+        topic: topic
+      })
+    })
+
+    if (!response.ok) {
+      // Get error message from response if available
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || 'Failed to analyze video')
+    }
+
+    const data = await response.json()
+    return {
+      score: data.score || 0,
+      confidence: data.confidence || 'low',
+      topic_keywords: data.topic_keywords || [],
+      topic_coverage: data.topic_coverage || 0
+    }
+  } catch (error) {
+    console.error('Video analysis error:', error)
+    throw error instanceof Error ? error : new Error('Failed to analyze video')
+  }
+}
+
+
+// hearing your notes
+
+
+export async function fileToAudio(formData: FormData) {
+  try {
+    const accessToken = cookies().get("access_token")?.value;
+    
+    if (!formData.has('file')) {
+      throw new Error('No file provided');
+    }
+
+    const file = formData.get('file') as File;
+    if (!file.size) {
+      throw new Error('Empty file provided');
+    }
+
+    const response = await fetch('http://127.0.0.1:5000/file-to-audio', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.detail || 'Failed to convert file to audio');
+      } catch {
+        throw new Error(errorText || 'Failed to convert file to audio');
+      }
+    }
+
+    const blob = await response.blob();
+    if (!blob.size) {
+      throw new Error('Received empty audio response');
+    }
+
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('File to audio error:', error);
+    throw error instanceof Error ? error : new Error('Failed to process audio');
+  }
+}

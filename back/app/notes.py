@@ -131,6 +131,60 @@ async def get_summary_by_id(
         raise HTTPException(status_code=404, detail="Summary not found")
 
     return {"result": summary}
+    
+@router.get("/notes/summary/{note_id}")
+async def get_note_summary(
+    note_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db)
+):
+    # Get note and verify access
+    note = db.query(DBNote).filter(
+        DBNote.id == note_id,
+        DBNote.user_id == current_user.id
+    ).first()
+    
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    try:
+        # Parse notes content
+        notes_content = json.loads(note.content)
+        
+        # Get most important notes (importance_score >= 0.8)
+        important_notes = [n for n in notes_content if n['importance_score'] >= 0.8]
+        
+        # Extract main topics
+        topics = [n['title'] for n in notes_content]
+        
+        # Collect unique keywords from important notes
+        keywords = list(set([
+            keyword 
+            for note in important_notes 
+            for keyword in note['keywords']
+        ]))[:5]  # Limit to top 5 keywords
+        
+        # Generate concise summary
+        summary = (
+            f"This document covers {', '.join(topics)}. "
+            f"Key concepts include: {', '.join(keywords)}. "
+            f"Main points: {'. '.join(n['content'] for n in important_notes[:2])}."
+        )
+        
+        return {
+            "result": {
+                "content": summary,
+                "title": note.title
+            }
+        }
+        
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid note content format")
+    except KeyError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid note structure: {str(e)}")
+
+
+
 
 @router.get("/quizzes/{quiz_id}")
 async def get_quiz_by_id(

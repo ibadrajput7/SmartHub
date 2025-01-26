@@ -1,13 +1,13 @@
-// UserDashboard.tsx
 'use client';
 
-import { useState } from 'react';
 import { FileText, HelpCircle, Radio, Youtube } from 'lucide-react';
+import { Toaster } from 'sonner';
 import GenerateNotesModal from '@/components/modals/GenerateNotesModal';
+import HearYourNotesModal from '@/components/modals/HearYourNotesModal';
 import QuizModal from '@/components/modals/QuizModal';
 import SummarizeModal from '@/components/modals/SummarizeModal';
-import HearYourNotesModal from '@/components/modals/HearYourNotesModal';
 import YouTubeAccuracyModal from '@/components/modals/YouTubeAccuracyModal';
+import { useState } from 'react';
 
 const UserDashboard = () => {
   const [isGenerateNotesOpen, setIsGenerateNotesOpen] = useState(false);
@@ -26,31 +26,42 @@ const UserDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <div className="">
-        <div className="max-w-5xl mx-auto p-4 lg:p-8">
-          <h1 className="text-2xl lg:text-3xl font-semibold mb-2 text-white">Features</h1>
-          <p className="text-purple-300 mb-6 lg:mb-8">Generate notes, quizzes, summarizations and video accuracy</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-gray-800 p-4 lg:p-6 rounded-xl cursor-pointer flex items-center gap-4 
-                border border-purple-900/30 hover:border-purple-500/50 transition-colors
-                hover:bg-gray-800/80 group"
-                onClick={feature.onClick}
-              >
-                <div className="p-2 bg-purple-900/30 rounded-lg group-hover:bg-purple-900/50 transition-colors">
-                  <div className="text-purple-400 group-hover:text-purple-300 transition-colors">
-                    {feature.icon}
-                  </div>
+      <Toaster 
+        position="top-center" 
+        theme="dark" 
+        richColors 
+        closeButton
+        toastOptions={{
+          style: {
+            background: '#1f2937',
+            color: '#fff',
+            border: '1px solid rgba(124, 58, 237, 0.1)',
+          },
+        }}
+      />
+      <div className="max-w-5xl mx-auto p-4 lg:p-8">
+        <h1 className="text-2xl lg:text-3xl font-semibold mb-2 text-white">Features</h1>
+        <p className="text-purple-300 mb-6 lg:mb-8">Generate notes, quizzes, summarizations and video accuracy</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="bg-gray-800 p-4 lg:p-6 rounded-xl cursor-pointer flex items-center gap-4 
+              border border-purple-900/30 hover:border-purple-500/50 transition-colors
+              hover:bg-gray-800/80 group"
+              onClick={feature.onClick}
+            >
+              <div className="p-2 bg-purple-900/30 rounded-lg group-hover:bg-purple-900/50 transition-colors">
+                <div className="text-purple-400 group-hover:text-purple-300 transition-colors">
+                  {feature.icon}
                 </div>
-                <span className="font-medium text-base lg:text-lg text-gray-200 group-hover:text-purple-300 transition-colors">
-                  {feature.title}
-                </span>
               </div>
-            ))}
-          </div>
+              <span className="font-medium text-base lg:text-lg text-gray-200 group-hover:text-purple-300 transition-colors">
+                {feature.title}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
