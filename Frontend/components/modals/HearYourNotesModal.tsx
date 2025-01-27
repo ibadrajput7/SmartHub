@@ -6,18 +6,15 @@ import { toast } from 'sonner'
 import { fileToAudio } from '@/app/(protected)/dashboard/actions'
 import AudioPlayer from '../AudioPlayer'
 
-const HearPDFUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+const HearYourNotesModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [audioConfig, setAudioConfig] = useState<{url: string, headers: HeadersInit} | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen) return null;
-
-    
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
   
-    // Validate file type
     const fileType = file.name.split('.').pop()?.toLowerCase();
     if (!['pdf', 'txt'].includes(fileType || '')) {
       toast.error('Only PDF and TXT files are supported');
@@ -29,15 +26,20 @@ const HearPDFUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   
     try {
       setIsLoading(true);
-      const url = await fileToAudio(formData);
-      setAudioUrl(url);
+      setError(null);
+      const config = await fileToAudio(formData);
+      setAudioConfig(config);
     } catch (error) {
       console.error('Upload error:', error);
+      setError('Failed to process audio');
       toast.error(error instanceof Error ? error.message : 'Failed to process audio');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black/50 z-[70] flex items-start justify-center pt-[10vh]">
       <div className="bg-gray-900 rounded-2xl w-full max-w-lg mx-4 overflow-hidden">
@@ -56,7 +58,13 @@ const HearPDFUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         </div>
 
         <div className="p-6 space-y-4">
-          {!audioUrl ? (
+          {error && (
+            <div className="text-red-500 text-center p-4">
+              {error}
+            </div>
+          )}
+          
+          {!audioConfig ? (
             <label className="w-full bg-black hover:bg-purple-600 text-purple-200 p-4 rounded-xl flex items-center gap-3 transition-colors cursor-pointer">
               <div className="p-2 rounded-lg">
                 <Upload className="w-6 h-6" />
@@ -71,7 +79,14 @@ const HearPDFUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
               />
             </label>
           ) : (
-            <AudioPlayer audioUrl={audioUrl} />
+            <AudioPlayer 
+              audioUrl={audioConfig.url} 
+              headers={audioConfig.headers}
+              onBack={() => {
+                setAudioConfig(null);
+                setError(null);
+              }}
+            />
           )}
           
           {isLoading && (
@@ -85,4 +100,4 @@ const HearPDFUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   );
 };
 
-export default HearPDFUploadModal;
+export default HearYourNotesModal;

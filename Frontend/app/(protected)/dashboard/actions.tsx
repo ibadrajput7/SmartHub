@@ -345,18 +345,11 @@ export async function analyzeYoutubeVideo(url: string, topic: string): Promise<A
 
 
 export async function fileToAudio(formData: FormData) {
+  'use server'
+  
   try {
     const accessToken = cookies().get("access_token")?.value;
     
-    if (!formData.has('file')) {
-      throw new Error('No file provided');
-    }
-
-    const file = formData.get('file') as File;
-    if (!file.size) {
-      throw new Error('Empty file provided');
-    }
-
     const response = await fetch('http://127.0.0.1:5000/file-to-audio', {
       method: 'POST',
       headers: {
@@ -366,23 +359,18 @@ export async function fileToAudio(formData: FormData) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.detail || 'Failed to convert file to audio');
-      } catch {
-        throw new Error(errorText || 'Failed to convert file to audio');
-      }
+      const error = await response.text();
+      throw new Error(error || 'Failed to process audio');
     }
 
-    const blob = await response.blob();
-    if (!blob.size) {
-      throw new Error('Received empty audio response');
-    }
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    const dataUrl = `data:audio/mpeg;base64,${base64}`;
+    
+    return { url: dataUrl, headers: {} };
 
-    return URL.createObjectURL(blob);
   } catch (error) {
     console.error('File to audio error:', error);
-    throw error instanceof Error ? error : new Error('Failed to process audio');
+    throw error;
   }
 }

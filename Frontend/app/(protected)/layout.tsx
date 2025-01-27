@@ -2,13 +2,13 @@ import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { useState } from 'react'
 import { SidebarProvider } from '@/contexts/SidebarContext'
-
+import { ChatbotProvider } from '@/contexts/ChatbotContext'
 // import { UserProvider } from "@/lib/context/UserContext"
 import HeaderSider from '@/components/HeaderSider'
 import SiderBar from '@/components/Siderbar'
 // import { AppSidebar } from "@/components/app-sidebar"
 // import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import DashboardHeader from "@/componentsCopy/dashboard-header"
+// import DashboardHeader from "@/componentsCopy/dashboard-header"
 
 const API_URL = "http://127.0.0.1:5000"
 
@@ -21,7 +21,7 @@ export default async function Layout({
   const accessToken = cookies().get("access_token")?.value
   
   if (!accessToken) {
-    redirect('/login')
+    // redirect('/login')
   }
 
   try {
@@ -51,21 +51,25 @@ export default async function Layout({
     const defaultOpen = cookieStore.get("sidebar:state")?.value === "true"
 
     return (
-      <SidebarProvider>
-        <div className="min-h-screen bg-gray-900">
-          <HeaderSider />
-          <SiderBar />
-          
-          <div className="lg:pl-64 flex flex-col min-h-screen">
-            <main className="flex-1 pt-16">
-              <div className="px-4 sm:px-6 lg:px-8 py-8">
-                {children}
+      
+        <ChatbotProvider>
+          <SidebarProvider>
+            <div className="min-h-screen bg-gray-900">
+              <HeaderSider />
+              <SiderBar />
+              
+              <div className="lg:pl-64 flex flex-col min-h-screen">
+                <main className="flex-1 pt-16">
+                  <div className="px-4 sm:px-6 lg:px-8 py-8">
+                    {children}
+                  </div>
+                </main>
               </div>
-            </main>
-          </div>
-        </div>
-      </SidebarProvider>
-    )
+            </div>
+          </SidebarProvider>
+        </ChatbotProvider>
+      )
+    
   } catch (error) {
     console.error('Layout error:', error)
     redirect('/login?message=Session expired')

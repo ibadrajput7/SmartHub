@@ -90,12 +90,37 @@ async def process_content(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/user/notes")
-async def get_user_notes(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
-    
-    notes = db.query(DBNote).filter(DBNote.user_id == current_user.id).all()
-    return notes
+@router.get("/user/notes", response_model=list[dict])
+async def get_user_notes(
+    current_user: Annotated[User, Depends(get_current_user)], 
+    db: Session = Depends(get_db)
+):
+    try:
+        notes = db.query(DBNote).filter(
+            DBNote.user_id == current_user.id
+        ).order_by(DBNote.created_at.desc()).all()
+        
+        if not notes:
+            return []
+            
+        return [
+            {
+                "id": note.id,
+                "title": note.title,
+                "content": note.content,
+                "created_at": note.created_at.isoformat(),
+                "user_id": note.user_id
+            }
+            for note in notes
+        ]
+    except Exception as e:
+        print(f"Error fetching notes: {str(e)}")  # Debug log
+        raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
+        
 @router.get("/user/quizzes")
 async def get_user_quizzes(current_user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     quizzes = db.query(DBQuiz).filter(DBQuiz.user_id == current_user.id).all()

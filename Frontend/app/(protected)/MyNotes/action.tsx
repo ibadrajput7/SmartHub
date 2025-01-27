@@ -1,24 +1,50 @@
 'use server'
 
 import { cookies } from "next/headers"
-import { NoteData } from '@/app/(protected)/notes/types'
+import { NoteResponse, ParsedNote } from '@/app/(protected)/notes/types'
 
-export async function getAllNotes(): Promise<NoteData[]> {
-  const accessToken = cookies().get("access_token")?.value
-  const response = await fetch('http://127.0.0.1:5000/api/notes', {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  })
+export async function getAllNotes(): Promise<ParsedNote[]> {
+  try {
+    const accessToken = cookies().get("access_token")?.value
+    if (!accessToken) {
+      throw new Error('No access token found')
+    }
 
-  if (!response.ok) {
-    return []
+    // Updated URL to match FastAPI router prefix
+    const response = await fetch('http://127.0.0.1:5000/api/notes/user/notes', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store'
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`API Error (${response.status}):`, errorText)
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const notes: NoteResponse[] = await response.json()
+    
+    return notes.map((note) => ({
+      id: note.id,
+      title: note.title,
+      content: tryParseJSON(note.content) || note.content,
+      createdAt: note.created_at,
+      userId: note.user_id
+    }))
+  } catch (error) {
+    console.error('Error fetching notes:', error)
+    return [] // Return empty array instead of throwing
   }
-
-  const data = await response.json()
-  return data.results.map((note: NoteData) => ({
-    ...note,
-    notes: JSON.parse(note.content)
-  }))
 }
 
+function tryParseJSON(text: string) {
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text // Return original text if parsing fails
+  }
+}

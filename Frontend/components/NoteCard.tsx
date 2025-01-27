@@ -1,42 +1,36 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { NoteData } from '@/app/(protected)/notes/types'
-import Link from "next/link"
+import { ParsedNote } from '@/app/(protected)/notes/types'
+import Link from 'next/link'
 
 interface NoteCardProps {
-  note: NoteData
+  note: ParsedNote
 }
 
 export function NoteCard({ note }: NoteCardProps) {
-  const parsedNotes = Array.isArray(note.notes) ? note.notes : []
-  const totalScore = parsedNotes.reduce((acc, note) => acc + note.importance_score, 0)
-  
+  const getPreviewText = (content: any): string => {
+    if (Array.isArray(content)) {
+      return content[0]?.content || ''
+    }
+    if (typeof content === 'string') {
+      return content
+    }
+    return JSON.stringify(content)
+  }
+
+  const previewText = getPreviewText(note.content)
+
   return (
-    <Link href={`/note/${note.id}`}>
-      <Card className="h-full bg-gray-800/50 border-gray-700 hover:bg-gray-800 transition-colors">
-        <CardHeader>
-          <CardTitle className="text-lg text-white">{note.title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex flex-wrap gap-2">
-              {parsedNotes.slice(0, 3).map((note, index) => (
-                <Badge 
-                  key={index}
-                  variant="secondary" 
-                  className="bg-purple-900/50 text-purple-100"
-                >
-                  {note.keywords[0]}
-                </Badge>
-              ))}
-            </div>
-            <p className="text-sm text-gray-400">
-              {parsedNotes.length} notes • Score: {totalScore}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <Link href={`/notes/${note.id}`} className="block">
+      <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-colors cursor-pointer h-[200px] flex flex-col">
+        <h3 className="text-xl font-semibold text-white mb-2 truncate">
+          {note.title}
+        </h3>
+        <p className="text-gray-400 line-clamp-3 flex-grow">
+          {previewText}
+        </p>
+        <div className="mt-4 text-sm text-gray-500">
+          {new Date(note.createdAt).toLocaleDateString()}
+        </div>
+      </div>
     </Link>
   )
 }
-

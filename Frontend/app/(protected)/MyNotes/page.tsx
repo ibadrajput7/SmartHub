@@ -1,26 +1,34 @@
 import { Suspense } from 'react'
-import { getAllNotes } from "@/app/(protected)/MyNotes/action"
+import { getAllNotes } from "./action"
 import { NoteCard } from "@/components/NoteCard"
 import { Skeleton } from "@/components/ui/skeleton"
 
 async function NotesGrid() {
-  const notes = await getAllNotes()
+  try {
+    const notes = await getAllNotes()
 
-  if (notes.length === 0) {
+    if (!notes || notes.length === 0) {
+      return (
+        <div className="text-center text-gray-400 py-12">
+          <p>No notes found. Generate some notes to get started!</p>
+        </div>
+      )
+    }
+
     return (
-      <div className="text-center text-gray-400 py-12">
-        <p>No notes found. Generate some notes to get started!</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {notes.map((note) => (
+          <NoteCard key={note.id} note={note} />
+        ))}
+      </div>
+    )
+  } catch (error) {
+    return (
+      <div className="text-center text-red-400 py-12">
+        <p>Error loading notes. Please try again later.</p>
       </div>
     )
   }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {notes.map((note) => (
-        <NoteCard key={note.id} note={note} />
-      ))}
-    </div>
-  )
 }
 
 function LoadingGrid() {

@@ -180,16 +180,15 @@ async def analyze_video(
 
 # HEAR YOUR NOTES ENDPOINT AND FUNCTIONALITY HERE:
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
+from fastapi.middleware.cors import CORSMiddleware
 import requests
 import PyPDF2
 from io import BytesIO
-
 # Configure API
-ELEVENLABS_API_KEY = "sk_f8f9c063248fbf042941e4bf52d1e4d4bf4350e3cdd9d960"
-ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM"  # Rachel voice ID
+ELEVENLABS_API_KEY = "sk_3c21b1837cfe0347701e640293d2e3deb754f94372c2d972"
+ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech/nPczCjzI2devNBz1zQrb"  # Rachel voice ID
 MAX_TEXT_LENGTH = 4000  # ElevenLabs limit
-
 # Update file_to_audio endpoint to require authentication
 
 
@@ -213,6 +212,10 @@ async def file_to_audio(
         if not extracted_text.strip():
             raise HTTPException(status_code=400, detail="No text content found in file")
 
+        # Truncate text if too long
+        if len(extracted_text) > MAX_TEXT_LENGTH:
+            extracted_text = extracted_text[:MAX_TEXT_LENGTH]
+
         # Call ElevenLabs API
         response = requests.post(
             ELEVENLABS_API_URL,
@@ -222,7 +225,7 @@ async def file_to_audio(
                 "Accept": "audio/mpeg"
             },
             json={
-                "text": extracted_text[:MAX_TEXT_LENGTH],
+                "text": extracted_text,
                 "model_id": "eleven_monolingual_v1",
                 "voice_settings": {
                     "stability": 0.5,
@@ -232,14 +235,11 @@ async def file_to_audio(
         )
 
         if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
+            print(f"ElevenLabs API error: {response.text}")
+            raise HTTPException(status_code=500, detail="Failed to generate audio")
 
-        # Create audio buffer
-        audio_buffer = BytesIO(response.content)
-        
-        # Return streaming response
-        return StreamingResponse(
-            audio_buffer,
+        return Response(
+            content=response.content,
             media_type="audio/mpeg",
             headers={
                 "Access-Control-Allow-Origin": "http://localhost:3000",
@@ -250,8 +250,62 @@ async def file_to_audio(
         )
 
     except Exception as e:
+        print(f"Error in file_to_audio: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
+
+
+# Chatbot
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from openai import AsyncOpenAI
+import os
+from typing import List, Dict
+from pydantic import BaseModel
+
+# Fix CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize OpenAI
+client = AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+class ChatMessage(BaseModel):
+    messages: List[Dict[str, str]]
+
+SMART_HUB_CONTEXT = """You are SmartHub's AI assistant. SmartHub is an AI-powered learning platform that:
+1. Generates structured notes from various content sources
+2. Creates summaries of content
+3. Generates quizzes for better learning
+4. Supports multiple input types (text, PDF, YouTube)
+5. Helps users organize and access their learning materials efficiently"""
+
+@app.post("/api/chat")
+async def chat(chat_message: ChatMessage):
+    try:
+        formatted_messages = [
+            {"role": "system", "content": SMART_HUB_CONTEXT}
+        ] + [{"role": msg["role"], "content": msg["content"]} for msg in chat_message.messages]
+
+        completion = await client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=formatted_messages,
+            temperature=0.7,
+            max_tokens=500
+        )
+
+        return {"response": completion.choices[0].message.content}
+    except Exception as e:
+        print(f"Chat error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
         
