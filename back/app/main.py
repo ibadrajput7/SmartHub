@@ -9,7 +9,7 @@ from datetime import timedelta
 from app.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, Token, get_current_user, hash_password, verify_password
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated, Optional
-
+from app.models import Note as DBNote, Quiz as DBQuiz
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
@@ -162,18 +162,35 @@ def read_user_me(current_user: Annotated[User, Depends(get_current_user)]):
 # Add imports at top
 from app.youtube.models import VideoAnalysisRequest, VideoAnalysisResponse
 from app.youtube.utils import get_video_id, get_transcript, calculate_relevance_score
-
+from app.models import Activity, ActivityType
 # Add new endpoint
 @app.post("/analyze-video", response_model=VideoAnalysisResponse)
 async def analyze_video(
     request: VideoAnalysisRequest,
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db) 
 ):
     try:
         video_id = get_video_id(str(request.url))
         transcript = get_transcript(video_id)
         results = calculate_relevance_score(request.topic, transcript)
+    #   here we write code of saving this is database:
+     # Log YouTube analysis activity
+        activity = Activity(
+            user_id=current_user.id,
+            activity_type=ActivityType.YOUTUBE_ANALYSIS,
+            source_type="youtube",
+            details={
+                "video_id": video_id,
+                "topic": request.topic,
+                "score": results.get("relevance_score")
+            }
+        )
+        db.add(activity)
+        db.commit()
+        
         return VideoAnalysisResponse(**results)
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -195,7 +212,8 @@ MAX_TEXT_LENGTH = 4000  # ElevenLabs limit
 @app.post("/file-to-audio")
 async def file_to_audio(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)  
 ):
     try:
         content = await file.read()
@@ -237,6 +255,21 @@ async def file_to_audio(
         if response.status_code != 200:
             print(f"ElevenLabs API error: {response.text}")
             raise HTTPException(status_code=500, detail="Failed to generate audio")
+
+            # Log audio generation activity
+        activity = Activity(
+            user_id=current_user.id,
+            activity_type=ActivityType.AUDIO_GENERATION,
+            source_type=file.filename.split('.')[-1],  # file extension as source type
+            details={
+                "filename": file.filename,
+                "file_type": file.content_type,
+                "text_length": len(extracted_text),
+                "audio_size": len(response.content)
+            }
+        )
+        db.add(activity)
+        db.commit()
 
         return Response(
             content=response.content,
@@ -309,3 +342,163 @@ async def chat(chat_message: ChatMessage):
 
 
         
+# for admin:
+from typing import List
+from fastapi import Depends, HTTPException, Security
+from jose import JWTError, jwt
+from app.models import Admin
+# Admin Pydantic models
+
+
+
+class AdminCreate(BaseModel):
+    user_id: int
+    password: str
+
+class AdminLogin(BaseModel):
+    user_id: int
+    password: str
+
+class UserUpdate(BaseModel):
+    username: str
+    email: str
+
+# Admin middleware
+async def get_current_admin(
+    token: str = Security(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Invalid admin credentials"
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    admin = db.query(Admin).filter(Admin.user_id == int(user_id)).first()
+    if not admin:
+        raise credentials_exception
+    return admin
+
+# Admin endpoints
+ADMIN_SECRET_KEY = "123123"  # Store in env variables
+
+@app.post("/admin/register")
+async def register_admin(admin: AdminCreate, db: Session = Depends(get_db)):
+    if db.query(Admin).filter(Admin.user_id == admin.user_id).first():
+        raise HTTPException(status_code=400, detail="Admin ID already registered")
+
+    new_admin = Admin(
+        user_id=admin.user_id,
+        hashed_password=hash_password(admin.password)
+    )
+    db.add(new_admin)
+    db.commit()
+    
+    return {"message": "Admin registered successfully"}
+
+@app.post("/admin/login")
+async def login_admin(admin: AdminLogin, db: Session = Depends(get_db)):
+    db_admin = db.query(Admin).filter(Admin.user_id == admin.user_id).first()
+    if not db_admin or not verify_password(admin.password, db_admin.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    access_token = create_access_token(data={"sub": str(db_admin.user_id)})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/admin/activities")
+async def get_all_activities(
+    db: Session = Depends(get_db)
+):
+    activities = db.query(Activity).all()
+    return {
+        "total": len(activities),
+        "activities": [
+            {
+                "id": a.id,
+                "user_id": a.user_id,
+                "activity_type": a.activity_type,
+                "source_type": a.source_type,
+                "details": a.details,
+                "created_at": a.created_at,
+                "status": "completed"  # Assuming status is always "completed" for simplicity
+            } for a in activities
+        ]
+    }
+
+@app.get("/admin/users")
+async def get_all_users(
+    db: Session = Depends(get_db)
+):
+    users = db.query(User).all()
+    return {
+        "total": len(users),
+        "users": [
+            {
+                "id": u.id,
+                "username": u.username,
+                "email": u.email
+            } for u in users
+        ]
+    }
+
+@app.delete("/admin/users/{user_id}")
+async def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    db.delete(user)
+    db.commit()
+    return {"message": "User deleted successfully"}
+
+@app.put("/admin/users/{user_id}")
+async def update_user(
+    user_id: int,
+    user_update: UserUpdate,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user_update.username:
+        user.username = user_update.username
+    if user_update.email:
+        user.email = user_update.email
+    
+    db.commit()
+    return {"message": "User updated successfully"}
+
+# get all notes from user:
+# notes fetch:
+class NoteOut(BaseModel):
+    id: int
+    title: str
+    content: str
+    user_id: int
+
+    class Config:
+        orm_mode = True
+
+
+@app.get("/user/notes", response_model=list[NoteOut])
+async def get_user_notes(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db)
+):
+    try:
+        notes = db.query(DBNote).filter(DBNote.user_id == current_user.id).order_by(DBNote.id.desc()).all()
+        return notes
+    except Exception as e:
+        print(f"Error fetching notes: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+

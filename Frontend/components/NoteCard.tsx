@@ -1,36 +1,47 @@
-import { ParsedNote } from '@/app/(protected)/notes/types'
-import Link from 'next/link'
+import { motion } from 'framer-motion';
+import { Trash2 } from 'lucide-react';
 
 interface NoteCardProps {
-  note: ParsedNote
+  note: {
+    id: number;
+    title: string;
+    content: string;
+  };
+  onDelete: (id: number) => void;
 }
 
-export function NoteCard({ note }: NoteCardProps) {
-  const getPreviewText = (content: any): string => {
-    if (Array.isArray(content)) {
-      return content[0]?.content || ''
-    }
-    if (typeof content === 'string') {
-      return content
-    }
-    return JSON.stringify(content)
-  }
-
-  const previewText = getPreviewText(note.content)
+const NoteCard: React.FC<NoteCardProps> = ({ note, onDelete }) => {
+  const content = typeof note.content === 'string' ? 
+    JSON.parse(note.content) : note.content;
 
   return (
-    <Link href={`/notes/${note.id}`} className="block">
-      <div className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-colors cursor-pointer h-[200px] flex flex-col">
-        <h3 className="text-xl font-semibold text-white mb-2 truncate">
-          {note.title}
-        </h3>
-        <p className="text-gray-400 line-clamp-3 flex-grow">
-          {previewText}
-        </p>
-        <div className="mt-4 text-sm text-gray-500">
-          {new Date(note.createdAt).toLocaleDateString()}
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="bg-[#1A1F2B]/90 border-2 border-purple-800/30 rounded-xl p-6 backdrop-blur-xl hover:border-purple-600/50 transition-all duration-200"
+    >
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-xl font-semibold text-white">{note.title}</h3>
+        <button
+          onClick={() => onDelete(note.id)}
+          className="p-2 rounded-full bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors"
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
-    </Link>
-  )
-}
+      
+      <div className="text-gray-400 space-y-2">
+        {Array.isArray(content) ? (
+          content.slice(0, 3).map((item: any, index: number) => (
+            <p key={index}>• {item.content}</p>
+          ))
+        ) : (
+          <p>{content}</p>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+export default NoteCard;

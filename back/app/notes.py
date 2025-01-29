@@ -1,7 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import Union, Optional, Literal
-from pydantic import HttpUrl
+from pydantic import HttpUrl, BaseModel
 from app.database import get_db
 from app.models import Note as DBNote, Quiz as DBQuiz
 from app.input_handler import InputProcessor, SourceType
@@ -11,7 +11,7 @@ from pathlib import Path
 from app.models import User
 from typing import Annotated
 from app.auth import get_current_user
-
+from app.models import Activity, ActivityType  
 
 router = APIRouter()
 processor = InputProcessor()
@@ -56,6 +56,21 @@ async def process_content(
             db.refresh(note)
             result["note_id"] = note.id
 
+
+            activity = Activity(
+                user_id=current_user.id,
+                activity_type=ActivityType.NOTE_GENERATION,
+                source_type=source_type.value,
+                details={
+                    "note_id": note.id,
+                    "note_title": note.title,
+                    "notes_count": len(result.get("notes", [])),
+                    "input_type": "youtube" if youtube_url else "file"
+                }
+            )
+            db.add(activity)
+            db.commit()
+
         elif process_type == "summary":
             note = DBNote(
                 title=f"Summary from {source_type.value}",
@@ -66,6 +81,20 @@ async def process_content(
             db.commit()
             db.refresh(note)
             result["note_id"] = note.id
+
+            activity = Activity(
+                user_id=current_user.id,
+                activity_type=ActivityType.SUMMARY_GENERATION,
+                source_type=source_type.value,
+                details={
+                    "note_id": note.id,
+                    "summary_title": note.title,
+                    "summary_length": len(result.get("summary", "")),
+                    "input_type": "youtube" if youtube_url else "file"
+                }
+            )
+            db.add(activity)
+            db.commit()
 
         elif process_type == "quiz":
             quiz = DBQuiz(
@@ -79,6 +108,21 @@ async def process_content(
             result["quiz_id"] = quiz.id
             result["quiz_saved"] = True
 
+
+            activity = Activity(
+                user_id=current_user.id,
+                activity_type=ActivityType.QUIZ_GENERATION,
+                source_type=source_type.value,
+                details={
+                    "quiz_id": quiz.id,
+                    "quiz_title": quiz.title,
+                    "questions_count": len(result.get("questions", [])),
+                    "input_type": "youtube" if youtube_url else "file"
+                }
+            )
+            db.add(activity)
+            db.commit()
+
         return {
             "message": f"{process_type.title()} generated successfully",
             "source_type": source_type,
@@ -90,32 +134,32 @@ async def process_content(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/user/notes", response_model=list[dict])
-async def get_user_notes(
-    current_user: Annotated[User, Depends(get_current_user)], 
-    db: Session = Depends(get_db)
-):
-    try:
-        notes = db.query(DBNote).filter(
-            DBNote.user_id == current_user.id
-        ).order_by(DBNote.created_at.desc()).all()
-        
-        if not notes:
-            return []
-            
-        return [
-            {
-                "id": note.id,
-                "title": note.title,
-                "content": note.content,
-                "created_at": note.created_at.isoformat(),
-                "user_id": note.user_id
-            }
-            for note in notes
-        ]
-    except Exception as e:
-        print(f"Error fetching notes: {str(e)}")  # Debug log
-        raise HTTPException(status_code=500, detail=str(e))
+# # notes fetch:
+# class NoteOut(BaseModel):
+#     id: int
+#     title: str
+#     content: str
+#     user_id: int
+
+#     class Config:
+#         orm_mode = True
+# user_router = APIRouter(
+#     prefix="/api",  # Add prefix
+#     tags=["notes"]
+# )
+
+
+# @router.get("/notes", response_model=list[NoteOut])
+# async def get_user_notes(
+#     current_user: Annotated[User, Depends(get_current_user)],
+#     db: Session = Depends(get_db)
+# ):
+#     try:
+#         notes = db.query(DBNote).filter(DBNote.user_id == current_user.id).order_by(DBNote.id.desc()).all()
+#         return notes
+#     except Exception as e:
+#         print(f"Error fetching notes: {str(e)}")
+#         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 
