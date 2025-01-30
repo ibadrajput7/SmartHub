@@ -203,7 +203,7 @@ import requests
 import PyPDF2
 from io import BytesIO
 # Configure API
-ELEVENLABS_API_KEY = "sk_3c21b1837cfe0347701e640293d2e3deb754f94372c2d972"
+ELEVENLABS_API_KEY = "sk_1d78e29a91d34c0740cf1b7f5719bfe5397628fa1463d0de"
 ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech/nPczCjzI2devNBz1zQrb"  # Rachel voice ID
 MAX_TEXT_LENGTH = 4000  # ElevenLabs limit
 # Update file_to_audio endpoint to require authentication
