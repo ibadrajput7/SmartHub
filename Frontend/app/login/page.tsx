@@ -11,14 +11,19 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SubmitButton } from '@/components/ui/submit-button';
 import FailedNotification from '@/components/failed-notification';
-
+import { useAuthProtection } from '@/hooks/useAuthProtection';
 export default function LoginPage({
   searchParams,
 }: {
   searchParams: { message?: string };
 }) {
+  const { isLoading } = useAuthProtection(true);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0B0E14] via-[#1a1c25] to-[#0B0E14] relative overflow-hidden">

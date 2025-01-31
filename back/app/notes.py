@@ -289,3 +289,63 @@ async def get_audio(filename: str):
         media_type="audio/mpeg",
         filename=filename
     )
+
+from fastapi import Cookie
+
+@router.get("/user/quizzes")
+async def get_user_quizzes(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db)
+):
+    try:
+        # Add debug logging
+        print(f"Fetching quizzes for user {current_user.id}")
+        
+        quizzes = db.query(DBQuiz).filter(DBQuiz.user_id == current_user.id).all()
+        
+        # Convert to list of dictionaries
+        quiz_list = []
+        for quiz in quizzes:
+            quiz_list.append({
+                "id": quiz.id,
+                "title": quiz.title,
+                "questions": quiz.questions if quiz.questions else [],
+                "user_id": quiz.user_id
+            })
+        
+        print(f"Found {len(quiz_list)} quizzes")
+        return quiz_list
+        
+    except Exception as e:
+        print(f"Error fetching quizzes: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to fetch quizzes: {str(e)}"
+        )
+
+
+@router.get("/user/notes")
+async def get_user_notes(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db)
+):
+    try:
+        notes = db.query(DBNote).filter(DBNote.user_id == current_user.id).all()
+
+        note_list = []
+        for note in notes:
+            note_list.append({
+                "id": note.id,
+                "title": note.title,
+                "content": note.content if note.content else [],
+                "user_id": note.user_id
+            })
+
+        print(f"Found {len(note_list)} notes")
+        return note_list
+    except Exception as e:
+        print(f"Error fetching notes: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to fetch notes: {str(e)}"
+        )

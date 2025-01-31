@@ -88,20 +88,20 @@ export default function RoleSelection() {
               whileTap={{ scale: 0.98 }}
             >
               <Button
-                onClick={handleContinue}
-                disabled={!selectedRole}
-                className={`
-                  px-8 py-6 text-lg font-semibold
-                  bg-gradient-to-r from-purple-800 to-purple-900
-                  hover:from-purple-900 hover:to-purple-950
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  transition-all duration-300 ease-out
-                  shadow-lg shadow-purple-700/25 hover:shadow-purple-700/40
-                  rounded-xl
-                `}
-              >
-                Continue as {selectedRole || "..."}
-              </Button>
+  onClick={handleContinue}
+  disabled={!selectedRole}
+  className={`
+    px-8 py-6 text-lg font-semibold text-white
+    bg-gradient-to-r from-purple-800 to-purple-900
+    hover:from-purple-900 hover:to-purple-950
+    disabled:opacity-50 disabled:cursor-not-allowed
+    transition-all duration-300 ease-out
+    shadow-lg shadow-purple-700/25 hover:shadow-purple-700/40
+    rounded-xl
+  `}
+>
+  Continue as {selectedRole || "..."}
+</Button>
             </motion.div>
           </div>
         </motion.div>

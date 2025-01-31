@@ -47,7 +47,7 @@ export async function login(formData: FormData) {
   cookies().set({
     name: "access_token",
     value: data.access_token,
-    httpOnly: true,
+    httpOnly: false, // Change to false to allow JS access
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/'

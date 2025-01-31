@@ -52,7 +52,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["Content-Type", "Content-Disposition"]
+    expose_headers=["*"]
 )
 
 def get_db():
@@ -478,27 +478,7 @@ async def update_user(
     db.commit()
     return {"message": "User updated successfully"}
 
-# get all notes from user:
-# notes fetch:
-class NoteOut(BaseModel):
-    id: int
-    title: str
-    content: str
-    user_id: int
-
-    class Config:
-        orm_mode = True
 
 
-@app.get("/user/notes", response_model=list[NoteOut])
-async def get_user_notes(
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
-):
-    try:
-        notes = db.query(DBNote).filter(DBNote.user_id == current_user.id).order_by(DBNote.id.desc()).all()
-        return notes
-    except Exception as e:
-        print(f"Error fetching notes: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 

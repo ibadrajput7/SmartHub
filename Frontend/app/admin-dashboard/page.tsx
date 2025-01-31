@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Users, Activity, Settings, Bell, Search, Trash, Edit, X, BarChart } from "lucide-react"
+import { Users, Activity, Settings, Bell, Search, Trash, Edit, X, BarChart, LogOut } from "lucide-react"
 import axios from "axios"
 import { ChartPage } from "./chart-page"
+import { useRouter } from 'next/navigation';
+import { useAuthProtection } from '@/hooks/useAuth';
 
 interface User {
   id: number
@@ -33,11 +35,63 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isEditingUser, setIsEditingUser] = useState(false)
   const [activeView, setActiveView] = useState<"users" | "activities" | "chart">("users")
+  const router = useRouter()
 
   useEffect(() => {
     fetchUsers()
     fetchActivities()
   }, [])
+  useEffect(() => {
+    // Initial state
+    window.history.pushState(null, '', window.location.href);
+    
+    const preventNavigation = (event: PopStateEvent) => {
+      event.preventDefault();
+      window.history.pushState(null, '', window.location.href);
+      window.alert('Please use the sign out button to leave the dashboard');
+    };
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+        e.preventDefault();
+        window.alert('Please use the sign out button to leave the dashboard');
+        return false;
+      }
+    };
+
+    const unloadHandler = (e: BeforeUnloadEvent) => {
+      if (localStorage.getItem('token')) {
+        e.preventDefault();
+        e.returnValue = '';
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('popstate', preventNavigation);
+    window.addEventListener('beforeunload', unloadHandler);
+    window.addEventListener('keydown', handleKeyPress);
+
+    // Disable refresh through context menu
+    window.oncontextmenu = (e) => {
+      if (localStorage.getItem('token')) {
+        e.preventDefault();
+      }
+    };
+
+    return () => {
+      window.removeEventListener('popstate', preventNavigation);
+      window.removeEventListener('beforeunload', unloadHandler);
+      window.removeEventListener('keydown', handleKeyPress);
+      window.oncontextmenu = null;
+    };
+  }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem("token")
+    router.replace("/admin-login")
+  }
+
 
   const fetchUsers = async () => {
     try {
@@ -111,15 +165,19 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
               <p className="mt-2 text-gray-400">Welcome back, Administrator</p>
             </div>
-
             <div className="flex items-center gap-4">
-              <button className="rounded-full bg-purple-900/40 p-2 text-purple-400 hover:bg-purple-800/50 transition-colors">
-                <Bell size={20} />
-              </button>
-              <button className="rounded-full bg-purple-900/40 p-2 text-purple-400 hover:bg-purple-800/50 transition-colors">
-                <Settings size={20} />
+              
+              <button 
+                onClick={handleSignOut}
+                className="rounded-full bg-purple-900/40 p-2 text-purple-400 hover:bg-purple-800/50 transition-colors"
+              >
+                <LogOut size={20} />
               </button>
             </div>
+
+            
+
+            
           </motion.div>
 
           {/* View Toggle Buttons */}
