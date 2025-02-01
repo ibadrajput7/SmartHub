@@ -15,7 +15,7 @@ interface Note {
 
 function NoteCard({ note }: { note: Note }) {
   return (
-    <Link href={`/note/${note.id}`}>
+    <Link href={`/notes/${note.id}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
