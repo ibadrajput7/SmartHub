@@ -83,7 +83,7 @@ const YoutubeVideoModal = ({ isOpen, onClose, mode }: YoutubeVideoModalProps) =>
         >
           <FileText className="w-6 h-6" />
           <span className="text-xl font-medium">
-            {isLoading ? 'Generating...' : `Generate ${mode === 'summary' ? 'Summary' : 'Notes'}`}
+          {isLoading ? 'Generating...' : mode === 'summary' ? 'Generate Summary' : mode === 'quiz' ? 'Generate Quiz' : 'Generate Notes'}
           </span>
         </button>
 

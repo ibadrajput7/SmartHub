@@ -47,7 +47,7 @@ export async function login(formData: FormData) {
   cookies().set({
     name: "access_token",
     value: data.access_token,
-    httpOnly: true,
+    httpOnly: false, // Change to false to allow JS access
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/'
@@ -89,116 +89,17 @@ export async function signup(formData: FormData) {
 }
 
 
-export async function logout() {
+export async function signout() {
+  // Clear the access token cookie
   cookies().delete("access_token");
+
+  // Revalidate the layout to update the authentication state
   revalidatePath("/", "layout");
-  redirect("/");
+
+  // Redirect to the login page
+  redirect("/login?message=You have been signed out");
 }
 
 
 
-// // actions.tsx
-// // actions.tsx
-// "use server"
 
-// import { revalidatePath } from "next/cache"
-// import { redirect } from "next/navigation"
-// import { cookies } from "next/headers"
-
-// const API_URL = "http://127.0.0.1:5000"
-
-// interface LoginResponse {
-//   message: string
-//   user: string
-// }
-
-// interface ErrorResponse {
-//   detail: string
-// }
-
-// export async function login(prevState: any, formData: FormData) {
-//   try {
-//     if (!formData) {
-//       return "Invalid form data"
-//     }
-
-//     const email = formData.get("email")?.toString()
-//     const password = formData.get("password")?.toString()
-
-//     if (!email || !password) {
-//       return "Email and password are required"
-//     }
-
-//     const response = await fetch(`${API_URL}/login`, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json'
-//       },
-//       body: JSON.stringify({ email, password }),
-//     })
-
-//     const data = await response.json() as LoginResponse | ErrorResponse
-
-//     if (!response.ok) {
-//       return 'detail' in data ? data.detail : "Login failed"
-//     }
-
-//     const loginData = data as LoginResponse
-//     cookies().set({
-//       name: "user",
-//       value: loginData.user,
-//       httpOnly: true,
-//       path: "/"
-//     })
-
-//     revalidatePath("/", "layout")
-//     redirect("/dashboard")
-//   } catch (error) {
-//     console.error("Login error:", error)
-//     return "An error occurred during login"
-//   }
-// }
-
-// export async function signup(prevState: any, formData: FormData) {
-//   try {
-//     if (!formData) {
-//       return "Invalid form data"
-//     }
-
-//     const username = formData.get("username")?.toString()
-//     const email = formData.get("email")?.toString()
-//     const password = formData.get("password")?.toString()
-
-//     if (!username || !email || !password) {
-//       return "All fields are required"
-//     }
-
-//     const response = await fetch(`${API_URL}/signup`, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json'
-//       },
-//       body: JSON.stringify({ username, email, password }),
-//     })
-
-//     const data = await response.json() as LoginResponse | ErrorResponse
-
-//     if (!response.ok) {
-//       return 'detail' in data ? data.detail : "Signup failed"
-//     }
-
-//     revalidatePath("/", "layout")
-//     return (data as LoginResponse).message || "Check your email to continue sign in process"
-//   } catch (error) {
-//     console.error("Signup error:", error)
-//     return "An error occurred during signup"
-//   }
-// }
-
-// export async function logout() {
-//   cookies().delete("user")
-//   revalidatePath("/", "layout")
-//   redirect("/login")
-// }

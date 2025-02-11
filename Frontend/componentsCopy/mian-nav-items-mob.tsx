@@ -15,7 +15,7 @@ function MainNavItemsMob() {
         className="flex items-center gap-2 text-lg font-semibold"
       >
         <Image
-          src="/euclideanai-favicon-black-transparent.png"
+          src="-favicon-black-transparent.png"
           alt="EuclideanAI"
           width={35}
           height={35}

@@ -35,11 +35,11 @@ class InputProcessor:
     def __init__(self):
         self.llm = ChatOpenAI(temperature=0.7)
         self.json_parser = JsonOutputParser()
-        # Initialize ElevenLabs
+
         self.client = ElevenLabs(
-            api_key="sk_ec209b32fd7ff532ed8b3faf1939a2339f9a81851f54234c", # Defaults to ELEVEN_API_KEY
+            api_key="sk_ec209b32fd7ff532ed8b3faf1939a2339f9a81851f54234c", 
         )
-        # Create audio directory
+
         self.audio_dir = Path("audio_files")
         self.audio_dir.mkdir(exist_ok=True)
 
@@ -51,10 +51,9 @@ class InputProcessor:
         config: Optional[RunnableConfig] = None
     ) -> dict:
         try:
-            # Convert input to text
+            
             transcript = await self._get_transcript(source_type, content)
             
-            # Process based on type
             if process_type == "notes":
                 return await self._generate_notes(transcript, config)
             elif process_type == "summary":
@@ -82,7 +81,7 @@ class InputProcessor:
             return await process_youtube_link(content)
         elif source_type == SourceType.LIVE:
             return await process_live_audio(content)
-        else:  # TEXT
+        else:  
             return content if isinstance(content, str) else (await content.read()).decode()
 
     async def _generate_notes(self, transcript: str, config: Optional[RunnableConfig] = None) -> dict:
@@ -139,7 +138,6 @@ class InputProcessor:
     async def _generate_audio(self, transcript: str, _: Optional[RunnableConfig] = None) -> dict:
         """Generate audio from text using ElevenLabs"""
         try:
-            # Generate audio using ElevenLabs client
             audio_data = self.client.generate(
                 text=transcript,
                 voice="Brian",
@@ -147,17 +145,13 @@ class InputProcessor:
                 output_format="mp3_44100_128"
             )
 
-            # Generate unique filename
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"audio_{timestamp}"
 
-            # Save audio to file
             saved_path = await self._save_audio(
                 audio_data=audio_data,
                 filename=filename
             )
-
-            # Return audio metadata
             return {
                 "audio_url": f"/api/audio/{saved_path.name}",
                 "filename": saved_path.name,
@@ -175,10 +169,10 @@ class InputProcessor:
     ) -> Path:
         """Save audio data to file system"""
         try:
-            # Create file path
+            
             saved_path = self.audio_dir / f"{filename}.mp3"
             
-            # Write audio data
+            
             with io.BytesIO() as buffer:
                 if isinstance(audio_data, (bytes, bytearray)):
                     buffer.write(audio_data)
@@ -189,7 +183,7 @@ class InputProcessor:
                         else:
                             raise TypeError("Generator must yield bytes")
                             
-                # Save to file
+                
                 with open(saved_path, 'wb') as f:
                     f.write(buffer.getvalue())
                 

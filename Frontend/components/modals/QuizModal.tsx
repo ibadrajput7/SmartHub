@@ -25,7 +25,11 @@ const QuizModal = ({ isOpen, onClose }: QuizModalProps) => {
       <div className="bg-gray-900 rounded-2xl w-full max-w-lg mx-4 overflow-hidden">
           <div className="p-6 pb-2">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold text-white">Generate Quizzes</h2>
+            <h2 className="text-2xl font-semibold">
+              <span className="text-white">Generate</span>
+              <span className="text-purple-600 ml-2">Quizzes</span>
+              <span className="text-white ml-2">:</span>
+            </h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-purple-600 rounded-full transition-colors"

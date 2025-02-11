@@ -83,10 +83,6 @@ const AudioUploadModal = ({ isOpen, onClose, mode }: AudioUploadModalProps) => {
                 onChange={(e) => setLanguage(e.target.value)}
               >
                 <option>English</option>
-                <option>Spanish</option>
-                <option>French</option>
-                <option>German</option>
-                <option>Italian</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
                 <ChevronLeft className="w-5 h-5 text-gray-500 rotate-90" />
@@ -115,7 +111,7 @@ const AudioUploadModal = ({ isOpen, onClose, mode }: AudioUploadModalProps) => {
               disabled={isLoading || !file}
               className="w-full bg-purple-600 text-white hover:bg-purple-700 p-4 rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Generating...' : `Generate ${mode === 'summary' ? 'Summary' : 'Notes'}`}
+              {isLoading ? 'Generating...' : mode === 'summary' ? 'Generate Summary' : mode === 'quiz' ? 'Generate Quiz' : 'Generate Notes'}
             </button>
 
             <button
@@ -123,7 +119,7 @@ const AudioUploadModal = ({ isOpen, onClose, mode }: AudioUploadModalProps) => {
               className="w-full bg-black text-purple-200 hover:bg-purple-600 p-4 rounded-xl flex items-center justify-center gap-3 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-base">More note options</span>
+              <span className="text-base">More options</span>
             </button>
           </div>
 

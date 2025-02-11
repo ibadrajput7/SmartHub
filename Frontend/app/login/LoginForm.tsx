@@ -25,7 +25,7 @@ export default function LoginForm({
       <Card className="w-full max-w-md overflow-hidden rounded-3xl border-0 bg-gray-900/95">
         <CardHeader className="mb-10 space-y-2 text-center">
           <h2 className="bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-4xl font-bold text-transparent">
-            Welcome Back
+            Welcome
           </h2>
           <p className="text-gray-400">Sign in to continue your journey</p>
         </CardHeader>
