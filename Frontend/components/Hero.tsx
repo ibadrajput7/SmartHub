@@ -43,7 +43,7 @@ const Hero: React.FC = (): JSX.Element => {
             Unleash Smarthub: Where Smarter Learning Meets AI Innovation,
             Empowering Students to Excel Effortlessly.
           </p>
-          <Link href="/login">
+          <Link href="/role-selection">
             <Button white>Get started</Button>
           </Link>
         </div>
