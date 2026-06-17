@@ -88,24 +88,6 @@ Convert raw content into structured learning material.
 
 ---
 
-## 📸 Screenshots
-
-<table>
-  <tr>
-    <td align="center"><b>Dashboard</b><br/><img src="assets/dashboard.PNG" width="100%"/></td>
-    <td align="center"><b>Notes Generator</b><br/><img src="assets/notes-generator.PNG" width="100%"/></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Quiz Generator</b><br/><img src="assets/quiz-generator.PNG" width="100%"/></td>
-    <td align="center"><b>AI Chat Assistant</b><br/><img src="assets/ai-assistant.PNG" width="100%"/></td>
-  </tr>
-  <tr>
-    <td align="center" colspan="2"><b>Learning Analytics</b><br/><img src="assets/analytics.PNG" width="60%"/></td>
-  </tr>
-</table>
-
----
-
 ## 🏗 Architecture
 
 ```mermaid
